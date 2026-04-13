@@ -125,6 +125,19 @@ A free-form key-value object populated by each MFE detail page via
 `withGlobalAiApplicationContext(computed(() => ({ ... })))`.  
 It holds the **entity IDs of what the user is currently looking at**.
 
+> **MFE ownership & no enforced schema.**  
+> Any MFE team can decide what to push here. The type is `Record<string, unknown>` — there is no
+> shared contract or validation at the TypeScript level. Key names are chosen freely by each team
+> (e.g. Inventory chose `serialNumber`, Assessments teams chose `assetId`, `fieldNoticeId`,
+> `checkId`, `ruleId`). The agent receiving the values in `filters` is responsible for knowing
+> what to do with them.  
+>
+> The registration is **entirely in the MFE's own UI store code** — no backend involvement.
+> The lifecycle is managed automatically by `withGlobalAiApplicationContext()`:
+> - **`onInit`** — dispatches the context (namespaced by `appKey`) to the root-level `AiAssistantGlobalContextStore`
+> - **Signal reactivity** — if the entity ID changes while the page is open, the context re-dispatches immediately
+> - **`onDestroy`** — clears the MFE's context slice, so stale entity IDs are never leaked to the next page
+
 **Concrete values registered by each MFE page:**
 
 | Page / Feature | `application.context` |
