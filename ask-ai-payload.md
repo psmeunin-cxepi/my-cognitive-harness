@@ -297,7 +297,29 @@ User-level context is resolved server-side from the session cookie (CCOID).
 
 ---
 
-## 6. Source Files
+## 6. Application Context as Tool Argument Helper (proposal)
+
+The application context (`filters`, `application.context`) acts as a **pre-populated argument source** for tool calls. 
+When the LLM selects a tool, it should check whether any of its arguments
+can already be resolved from the application context before asking the user.
+
+```python
+"## Application Context\n"
+"The following context reflects what the user is currently viewing in the UI. "
+"When selecting a tool, check whether any of its arguments can be resolved "
+"from this context before asking the user.\n\n"
+f"{app_context}"
+```
+
+| Principle | Detail |
+|---|---|
+| The LLM classifies the question first, then selects a tool | Application context is only relevant at argument population time |
+| Conditional — not always applicable | Some tools have no overlap with the UI context; the instruction must not force it |
+| Avoids redundant prompting | Entity IDs already known from the UI (e.g. `fieldNoticeId`, `serialNumber`) should not be re-asked |
+
+---
+
+## 7. Source Files
 
 | File | Purpose |
 |---|---|
@@ -317,3 +339,5 @@ User-level context is resolved server-side from the session cookie (CCOID).
 - [Contextual AI Assistant](https://cisco-cxe.atlassian.net/wiki/spaces/CVICXPM/pages/830177293) — context levels, use-case matrix  
 - [CVI Semantic Router: App Tagging Design](https://cisco-cxe.atlassian.net/wiki/spaces/CIA/pages/1463943206) — routing tiers, tag inventory, route mappings  
 - [AI Assistant / LDOS Agent - Engineering Handoff](https://cisco-cxe.atlassian.net/wiki/spaces/CPC/pages/1511456811) — LDOS-specific API parameters  
+
+
