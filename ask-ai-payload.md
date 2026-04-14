@@ -299,9 +299,17 @@ User-level context is resolved server-side from the session cookie (CCOID).
 
 ## 6. Application Context as Tool Argument Helper (proposal)
 
-The application context (`filters`, `application.context`) acts as a **pre-populated argument source** for tool calls. 
+The application context (`context.filters`, `context.application`) acts as a **pre-populated argument source** for tool calls. 
 When the LLM selects a tool, it should check whether any of its arguments
 can already be resolved from the application context before asking the user.
+
+| Principle | Detail |
+|---|---|
+| The LLM classifies the question first, then selects a tool | Application context is only relevant at argument population time |
+| Conditional — not always applicable | Some tools have no overlap with the UI context; the instruction must not force it |
+| Avoids redundant prompting | Entity IDs already known from the UI (e.g. `fieldNoticeId`, `serialNumber`) should not be re-asked |
+
+System prompt section with context.application or context.filters parsed
 
 ```python
 "## Application Context\n"
@@ -311,11 +319,55 @@ can already be resolved from the application context before asking the user.
 f"{app_context}"
 ```
 
-| Principle | Detail |
-|---|---|
-| The LLM classifies the question first, then selects a tool | Application context is only relevant at argument population time |
-| Conditional — not always applicable | Some tools have no overlap with the UI context; the instruction must not force it |
-| Avoids redundant prompting | Entity IDs already known from the UI (e.g. `fieldNoticeId`, `serialNumber`) should not be re-asked |
+---
+
+### How `{app_context}` Is Built — Config Best Practices Implementation
+
+> Reference implementation: [`configbp-ai`](https://github.com/CXEPI/configbp-ai) — commit [CXP-24290](https://github.com/CXEPI/configbp-ai/commit/be70eabfeacbdc2b4aec3e229926b4bba5509389), merged to `main`.  
+> Key files: `a2a_server/handlers/skill_handlers.py`, `agent/api/server.py`, `agent/services/ui_context_builder.py`.
+
+The end-to-end flow from payload arrival to `SystemMessage` injection:
+
+**Step 1 — Frontend sends `filters` in A2A message metadata**  
+The CX Cloud frontend (via the CVI Semantic Router A2A adapter) includes the `context.filters` map from the `buildMessageContext()` payload inside `message.metadata["filters"]`. Only non-null, non-empty entries are included.
+
+**Step 2 — `_extract_ui_filters()` strips stray nulls**  
+In `a2a_server/handlers/skill_handlers.py`, the `_extract_ui_filters()` function reads `context.message.metadata["filters"]` and does a defensive pass to remove any `None` or empty-string values, returning a clean `dict`.
+
+**Step 3 — Filters forwarded to the agent server as `ui_filters`**  
+The A2A skill handler passes `ui_filters` to the agent's internal `/chat` or `/chat/stream` endpoint via `ChatRequest.ui_filters`. This is a plain `Optional[dict]` field on the Pydantic model.
+
+**Step 4 — `build_ui_context()` processes the raw filters**  
+`agent/services/ui_context_builder.py` is the core logic. It performs four sub-steps:
+
+1. **Allowlist filtering & key normalisation** — only keys in `ALLOWED_FILTERS` pass through (~50 named filter keys covering identifiers, finding-level filters, asset-scope filters, and date/threshold filters). Variant keys ending in `Equals` (e.g. `productFamilyEquals`) are mapped to their canonical form. Single-element lists are flattened to scalar strings.
+
+2. **MCP resolution of opaque identifiers** — `ruleId` (an opaque source ID) is resolved to a human-readable `rule_name` via the MCP tool `resolve_filter_context(resolve_type="rule")`. `assetId` (a 32-char MD5 hash or serial number) is resolved to `{hostname, serial_number, asset_key}` via `resolve_filter_context(resolve_type="asset")`. If both are present, they are resolved in parallel with `asyncio.gather()`. Results are cached (rules: indefinitely; assets: 24 h, tenant-scoped to prevent cross-tenant leakage).
+
+3. **Markdown lines assembled** — resolved names replace raw IDs; remaining allowed filters are rendered as `- **Label**: value` lines using a human-friendly label map.
+
+4. **Final markdown string built** — the lines are joined, then a `header` and a `footer` are constructed separately and concatenated (`return header + footer`):
+   - **header** — contains the `## Application Context(UI Context)` title, the instruction to populate tool arguments from context, and the bullet lines.
+   - **footer** — a fixed warning appended after the bullet lines instructing the LLM never to expose internal identifiers (rule IDs, asset keys, etc.) to the user.
+
+**Step 5 — `_build_messages()` injects the string as a `SystemMessage`**  
+In `agent/api/server.py`, if `ui_context` is non-empty, it is prepended to the message list as the first `SystemMessage` before conversation history and the user's `HumanMessage`.
+
+**Summary flow:**
+
+```
+Frontend payload
+  └─ context.filters (from buildMessageContext)
+       └─ A2A message.metadata["filters"]
+            └─ _extract_ui_filters()   → clean dict
+                 └─ ChatRequest.ui_filters
+                      └─ build_ui_context()
+                           ├─ allowlist + normalise keys
+                           ├─ resolve ruleId / assetId via MCP (cached)
+                           └─ build markdown string
+                                └─ SystemMessage(content=app_context)
+                                     └─ injected first in message list to LLM
+```
 
 ---
 
