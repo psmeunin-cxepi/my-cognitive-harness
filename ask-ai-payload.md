@@ -383,6 +383,7 @@ Frontend payload
 | `cvi_ai_shared/types.py` | `QuestionContext` (backend schema) |
 
 **Jira:**  
+- CXP-15402 - AI Assistant: Phase 2- Enhancements on Contextual Data
 - CXP-25805 — Frontend `appTags` pass-through + `buildMessageContext()` change  
 - CXP-26207 / CXP-26208 — Source-based tiered routing (Q3)  
 - CXP-25133 — App Tagging epic  
