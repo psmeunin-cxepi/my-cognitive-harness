@@ -89,14 +89,102 @@ Try asking:
 > Note: Comment posted on parent epic CXP-27414.  
 > Note: Engineer posted a **detailed mid-conversation response**, not a welcome/opening message. No welcome message has been submitted yet. The "What I Can Help You With" section extracted below provides the capability reference.
 
-**Capabilities (from a live response):**
+---
+Asset Assessment Rating Overview
+I reviewed your device matching the serial number SIM651819. Here is the assessment summary for that asset.
 
-- Detailed breakdown of which assessment type contributes most to the rating
-- Prioritizing findings that most impact the rating category
-- Identifying which issues are keeping the device in the Critical category
-- Showing how the rating would change if specific findings were resolved
-- Comparing this device's rating with other high or critical assets in the environment
-- Identifying similar devices affected by the same findings
+Asset: 9407-dualsup
+Serial Number: SIM651819
+Asset Importance: Critical
+Assessment Rating: Critical
+
+Assessment Findings Breakdown
+The Critical rating is driven by findings across multiple assessment applications.
+
+Security Advisory
+This is the primary contributor to the rating.
+
+Critical findings: 2
+
+High findings: 33
+
+Medium findings: 0
+
+Low findings: 0
+
+These advisories indicate the device is affected by multiple known security vulnerabilities, including a small number of critical severity advisories which significantly elevate the asset’s risk category.
+
+Configuration Assessment
+Configuration issues also contribute to the rating.
+
+Critical findings: 0
+
+High findings: 7
+
+Medium findings: 21
+
+Low findings: 8
+
+These findings indicate configuration conditions that may weaken the security posture or operational resilience of the device.
+
+Security Hardening
+Security hardening checks show several gaps.
+
+Critical findings: 0
+
+High findings: 7
+
+Medium findings: 16
+
+Low findings: 4
+
+These represent missing or incomplete security best-practice protections.
+
+Field Notices
+No field notice findings were detected for this device.
+
+Key Drivers of the Critical Rating
+The Critical rating for this asset is mainly driven by:
+
+Presence of critical security advisories
+
+A large number of high-severity security advisories
+
+Additional exposure from configuration and hardening gaps
+
+Even without field notice issues, the security advisory exposure alone pushes the asset into the Critical category.
+
+Remediation Prioritization Insights
+Because this asset has both Critical asset importance and a Critical assessment rating, it represents a top remediation priority. The most impactful mitigation areas are:
+
+Security Advisory remediation
+
+Address the critical advisories first since they directly elevate the asset into the Critical rating category.
+
+High‑severity configuration issues
+
+Reducing these findings can significantly lower overall risk exposure.
+
+Security hardening gaps
+
+Closing high-severity hardening gaps improves baseline security posture.
+
+What I Can Help You With for This Asset
+For this device, I can help you with Cisco Assessment Rating insights such as:
+
+Detailed breakdown of which assessment type contributes most to the rating
+
+Prioritizing findings that most impact the rating category
+
+Identifying which issues are keeping the device in the Critical category
+
+Showing how the rating would change if specific findings were resolved
+
+Comparing this device’s rating with other high or critical assets in your environment
+
+Identifying similar devices affected by the same findings
+
+If you'd like, I can also show which findings are the biggest contributors keeping this asset in the Critical category.
 
 ---
 
@@ -120,29 +208,89 @@ Across all four agents, the following patterns are consistent:
 
 ---
 
-## 3. Proposed Welcome Message — Assessment Rating Agent
-
-> Synthesizes the CBP structure with the LDOS label style and the SH/SA example-question approach, applied to the Assessment Rating agent's capabilities.
+## 3. Proposed Welcome Message 
 
 ---
 
-Hello! I can help you understand and act on your asset assessment ratings across Cisco IQ. Here is what I can do.
+Hello! I can answer questions about your asset assessment ratings and help you understand what’s driving them.
 
-#### Fleet Assessment Overview
-- Retrieve a summary of assessment ratings across your entire install base, filtered by severity (Critical, High, Medium, Low) or asset count.
+- **Fleet overview** — rating distribution across your install base
+- **Asset detail** — how each assessment area contributes to a device’s rating
+- **Root cause** — which findings are keeping an asset in its current risk category
+- **Remediation guidance** — the fixes most likely to reduce risk
+- **Comparison** — other assets with similar risk profiles or shared findings
 
-#### Asset Rating Detail
-- Analyze the assessment rating for a specific device and explain which findings drive it into its current risk category.
+What would you like to know?
 
-#### Cross-Assessment Breakdown
-- Break down how each assessment domain — Security Advisories, Configuration Best Practices, Security Hardening, and Field Notices — contributes to an asset's overall rating.
+---
 
-#### Remediation Prioritization
-- Identify which findings have the highest impact on the rating and prioritize remediation to move an asset out of the Critical or High category.
+## 4. Updated Welcome Messages For Each Agent
 
-#### Comparative Analysis
-- Compare rating distributions across your environment and surface assets that share the same high-impact findings.
+> Rewritten in a lighter, more conversational AI-agent voice: short greeting, compact capability bullets, and a simple closing question.
 
-If you'd like, ask a question or choose an area to explore and I'll help you analyze the data.
+---
+
+### 4.1 LDOS Agent
+
+Hello! I can answer questions about your Cisco install base and help you understand lifecycle, coverage, and risk exposure.
+
+- **Lifecycle & LDOS** — assets that are past or approaching end-of-life milestones
+- **Coverage & contracts** — contract status, warranty, and renewal windows
+- **Security advisories** — PSIRTs and vulnerabilities by severity
+- **Inventory breakdowns** — assets by product family, location, software type, tags, and more
+- **Telemetry & connectivity** — connected devices and recent signal activity
+
+What would you like to know?
+
+---
+
+### 4.2 Config Best Practices (CBP) Agent
+
+Hello! I can answer questions about your configuration assessment results and help you understand what findings matter most.
+
+- **Assessment summary** — total findings, severity distribution, most impacted assets, and most common rules that did not pass
+- **Asset analysis** — findings for specific assets using filters like hostname, IP address, product family, location, or software version
+- **Rule analysis** — rule details, severity, impact, affected assets, and how often a rule is marked as Did Not Pass
+- **Signature insights** — pre-generated AI insights with key patterns, risks, and recommendations for Signature assets
+
+What would you like to know?
+
+---
+
+### 4.3 Security Hardening Agent
+
+Hello! I can answer questions about Cisco security hardening and help you understand where your environment may be exposed.
+
+- **Hardening guidance** — baseline security best practices for Cisco platforms
+- **Exposure summary** — failed hardening checks and where they are concentrated
+- **Asset impact** — how many assets are affected by security hardening gaps
+
+What would you like to know?
+
+---
+
+### 4.4 Security Advisory Agent
+
+Hello! I can answer questions about security advisories and help you understand how they affect your devices.
+
+- **Advisory lookup** — advisories by topic, protocol, or vulnerability
+- **Impact analysis** — affected devices and advisory exposure across your environment
+- **Risk summary** — current exposure based on vulnerable assets and advisory severity
+
+What would you like to know?
+
+---
+
+### 4.5 Assessment Rating Agent
+
+Hello! I can answer questions about this asset’s assessment rating and help you understand what’s contributing most to it.
+
+- **Rating breakdown** — which assessment area contributes most to the asset’s rating
+- **Key drivers** — which findings are keeping the asset in its current risk category
+- **Remediation guidance** — which issues matter most and how the rating could change if they were resolved
+- **Comparison** — how this asset compares with other high- or critical-rated assets
+- **Similar assets** — other devices affected by the same findings
+
+What would you like to know?
 
 ---
