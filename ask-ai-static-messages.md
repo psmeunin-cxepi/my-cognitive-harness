@@ -143,13 +143,6 @@ Hello! I can help you understand and act on your asset assessment ratings across
 #### Comparative Analysis
 - Compare rating distributions across your environment and surface assets that share the same high-impact findings.
 
-Try asking:
-
-- What are the top 10 highest-risk assets in my environment?
-- Why does this device have a Critical rating?
-- Which security advisories are driving the most high-rated assets?
-- If I fix the top configuration issues, how would the rating change?
-
-What would you like to explore?
+If you'd like, ask a question or choose an area to explore and I'll help you analyze the data.
 
 ---
