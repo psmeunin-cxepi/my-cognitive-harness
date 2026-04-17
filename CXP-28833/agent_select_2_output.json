@@ -1,0 +1,51 @@
+{
+  "generations": [
+    [
+      {
+        "generation_info": null,
+        "message": {
+          "id": [
+            "langchain",
+            "schema",
+            "messages",
+            "AIMessage"
+          ],
+          "kwargs": {
+            "content": "",
+            "id": "lc_run--019d9afa-68dd-79a0-bf20-8178b2447df3-0",
+            "invalid_tool_calls": [],
+            "response_metadata": {
+              "inference_id": "1032db8f-3273-48f8-be58-6dff33f6e46f",
+              "model_name": "mistral-medium-2508"
+            },
+            "tool_calls": [
+              {
+                "args": {
+                  "agent_skill": "assessment-rating-analysis-query",
+                  "is_valid": true
+                },
+                "id": "IPig7fPU9",
+                "name": "AgentSelectionResponseNoReasoning",
+                "type": "tool_call"
+              }
+            ],
+            "type": "ai",
+            "usage_metadata": {
+              "input_tokens": 7002,
+              "latency": 0.7503046989440918,
+              "output_tokens": 28,
+              "total_tokens": 7030
+            }
+          },
+          "lc": 1,
+          "type": "constructor"
+        },
+        "text": "",
+        "type": "ChatGeneration"
+      }
+    ]
+  ],
+  "llm_output": null,
+  "run": null,
+  "type": "LLMResult"
+}
