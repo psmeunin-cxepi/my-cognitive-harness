@@ -2,3 +2,12 @@ README.md
 .skills
 .agents
 .tessl
+.codex
+.github
+.vscode
+.env
+.playwright
+.playwright-mcp/
+
+# LangSmith CLI config (contains API keys)
+.langsmith/
