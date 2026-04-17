@@ -1,0 +1,41 @@
+{
+  "generations": [
+    [
+      {
+        "generation_info": null,
+        "message": {
+          "id": [
+            "langchain",
+            "schema",
+            "messages",
+            "AIMessage"
+          ],
+          "kwargs": {
+            "content": "I'll use the following tools: [{\"id\": \"XZQ5YZQ5YZ\", \"function\": {\"name\": \"mcp_build_sql_by_domain\", \"arguments\": \"{\\\"domain\\\": \\\"security_advisory\\\", \\\"columns\\\": [\\\"COUNT(id) AS total_assets\\\", \\\"SUM(security_advisories_count) AS total_advisories\\\", \\\"SUM(affected_security_advisories_count) AS affected_advisories\\\", \\\"SUM(potentially_affected_security_advisories_count) AS potentially_affected_advisories\\\", \\\"SUM(critical_security_advisories_count) AS critical_advisories\\\", \\\"SUM(high_security_advisories_count) AS high_advisories\\\"], \\\"target_table_alias\\\": \\\"assets\\\"}\"}, \"type\": \"function\"}]",
+            "id": "run--019d9b75-bc86-7861-add0-ca2b59f7b6a6-0",
+            "invalid_tool_calls": [],
+            "response_metadata": {
+              "inference_id": "6c894fc6-8570-4f54-9e5c-076d1e2a5c67",
+              "model_name": "mistral-medium-2508"
+            },
+            "tool_calls": [],
+            "type": "ai",
+            "usage_metadata": {
+              "input_tokens": 17387,
+              "latency": 3.3123834133148193,
+              "output_tokens": 170,
+              "total_tokens": 17557
+            }
+          },
+          "lc": 1,
+          "type": "constructor"
+        },
+        "text": "I'll use the following tools: [{\"id\": \"XZQ5YZQ5YZ\", \"function\": {\"name\": \"mcp_build_sql_by_domain\", \"arguments\": \"{\\\"domain\\\": \\\"security_advisory\\\", \\\"columns\\\": [\\\"COUNT(id) AS total_assets\\\", \\\"SUM(security_advisories_count) AS total_advisories\\\", \\\"SUM(affected_security_advisories_count) AS affected_advisories\\\", \\\"SUM(potentially_affected_security_advisories_count) AS potentially_affected_advisories\\\", \\\"SUM(critical_security_advisories_count) AS critical_advisories\\\", \\\"SUM(high_security_advisories_count) AS high_advisories\\\"], \\\"target_table_alias\\\": \\\"assets\\\"}\"}, \"type\": \"function\"}]",
+        "type": "ChatGeneration"
+      }
+    ]
+  ],
+  "llm_output": null,
+  "run": null,
+  "type": "LLMResult"
+}
