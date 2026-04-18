@@ -208,17 +208,15 @@ Across all four agents, the following patterns are consistent:
 
 ---
 
-## 3. Proposed Welcome Message 
+## 3. Proposed Welcome Message Format
 
 ---
 
-Hello! I can answer questions about your asset assessment ratings and help you understand what’s driving them.
+Hello! I can answer questions about [domain] and help you understand [value].
 
-- **Fleet overview** — rating distribution across your install base
-- **Asset detail** — how each assessment area contributes to a device’s rating
-- **Root cause** — which findings are keeping an asset in its current risk category
-- **Remediation guidance** — the fixes most likely to reduce risk
-- **Comparison** — other assets with similar risk profiles or shared findings
+- **<topic>** — description
+- **<topic>** — description
+- _(repeat per capability — no fixed count)_
 
 What would you like to know?
 
