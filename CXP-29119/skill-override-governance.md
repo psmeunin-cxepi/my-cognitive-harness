@@ -15,6 +15,7 @@ The skill override layer (PR #432) gives the SR team a local control surface: th
 
 ## 2. Guiding Principles
 
+- **Governance is enforced, not advisory.** A strict policy and process governs the creation of overrides and the compliance of agent cards. The SR team acts as the enforcing authority — non-compliant agents are warned and, if unresolved, removed from routing. Participation in SR routing is a privilege, not a right.
 - **Overrides are temporary workarounds, not permanent fixes.** The root cause is always one or more agent cards. An override buys time; fixing the card(s) is the expected outcome.
 - **Quality is a hard gate, for both sides.** An agent does not enter SR routing until its card passes audit and evals. An override is not deployed until SR routing evals confirm it improves routing. Neither is a negotiation.
 - **The SR team does not own routing alone.** Agent teams are responsible for their card quality. The SR team is responsible for routing accuracy and for documenting every override and its rationale.
