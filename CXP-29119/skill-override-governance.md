@@ -15,24 +15,26 @@ The skill override layer (PR #432) gives the SR team a local control surface: th
 
 ## 2. Guiding Principles
 
-- **Overrides are temporary workarounds, not permanent fixes.** The root cause is always the agent card. An override buys time; fixing the card is the expected outcome.
-- **Quality is a hard gate.** Routing accuracy is not a negotiation. An agent does not enter SR routing until it meets the minimum requirements. An override is not shipped without eval validation.
+- **Overrides are temporary workarounds, not permanent fixes.** The root cause is always one or more agent cards. An override buys time; fixing the card(s) is the expected outcome.
+- **Quality is a hard gate, for both sides.** An agent does not enter SR routing until its card passes audit and evals. An override is not deployed until SR routing evals confirm it improves routing. Neither is a negotiation.
 - **The SR team does not own routing alone.** Agent teams are responsible for their card quality. The SR team is responsible for routing accuracy and for documenting every override and its rationale.
-- **External storage enables fast response.** Override data lives outside the deployment git repo so routing fixes can be applied in minutes without a redeploy.
+- **External storage enables fast response.** Override data lives outside the deployment git repo so routing fixes can be applied in minutes without a redeploy, and can be queried via MCP for Agent Card Audits.
 
 ---
 
 ## 3. Minimum Requirements for Agent Cards
 
-Before the SR accepts an agent card for routing, the agent team must satisfy two requirements:
+Before the SR accepts an agent card for routing, the agent team must satisfy the following requirements.
 
-**Req 1 — Agent Card Audit**
+### 3.1 Requirements
+
+#### Req 1 — Agent Card Audit
 The agent card must have been audited using the Agent Card Audit Skill and all suggested changes implemented. The audit must include any active skill overrides as context (pulled automatically via MCP — see Section 8).
 
-**Req 2 — SR Routing Evals**
+#### Req 2 — SR Routing Evals
 SR routing evals must have been run and returned a positive result. Both teams share responsibility: the agent team runs evals against their card/agent; the SR team validates the results are sufficient for routing acceptance.
 
-### 3.1 Attestation Signature
+### 3.2 Attestation Signature
 
 Agent teams prove compliance by adding a `cx_sr_attestation` field to their `.well-known/agent.json`:
 
@@ -133,26 +135,16 @@ The agent is removed from SR routing and blocked on any subsequent card sync unt
 
 The SR team is responsible for monitoring expiry dates and triggering the escalation process.
 
-### Rollback
-To remove an override immediately:
-```
-db.agents.updateOne(
-  { name: "<Agent>", region: "<region>" },
-  { $unset: { "skill_overrides": "" } }
-)
-# Then: POST /refresh-agents
-```
-
 ---
 
 ## 8. Override Visibility
 
 Active overrides must be accessible through two surfaces:
 
-**MCP resource (programmatic)**
+### MCP resource (programmatic)
 Override data for any agent is queryable via MCP. This is consumed automatically by the Agent Card Audit Skill when auditing a card — an audit run without override context is considered incomplete.
 
-**UI (human review)**
+### UI (human review)
 A human-readable view showing all active overrides per agent, including: override text, who created it, creation date, expiry date, and linked documentation. Accessible to agent teams without requiring MongoDB access.
 
 ---
