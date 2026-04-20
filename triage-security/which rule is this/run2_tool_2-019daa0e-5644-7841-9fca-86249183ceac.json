@@ -1,0 +1,81 @@
+{
+  "inputs": {
+    "arguments": {
+      "columns": [
+        "bulletins.advisory_id",
+        "bulletins.headline_name",
+        "bulletins.severity_level_name",
+        "bulletins.summary_text",
+        "bulletins.cvss_score",
+        "bulletins.publish_date"
+      ],
+      "filters": [
+        {
+          "column": "psirts.check_id",
+          "operator": "=",
+          "value": "989"
+        }
+      ],
+      "joins": [
+        {
+          "join_type": "INNER",
+          "on_left": "assets.serial_number",
+          "on_right": "psirts.serial_number",
+          "table": "psirts"
+        },
+        {
+          "join_type": "INNER",
+          "on_left": "psirts.psirt_id",
+          "on_right": "bulletins.psirt_id",
+          "table": "bulletins"
+        }
+      ],
+      "table_name": "postgresql.public.cvi_assets_view_1__3__5"
+    },
+    "name": "build_sql_query"
+  },
+  "outputs": {
+    "content": [
+      {
+        "text": "{\n  \"sql\": \"SELECT bulletins.advisory_id, bulletins.headline_name, bulletins.severity_level_name, bulletins.summary_text, bulletins.cvss_score, bulletins.publish_date\\nFROM postgresql.public.cvi_assets_view_1__3__5 AS assets\\nINNER JOIN postgresql.public.cvi_psirts_view_1__3__7 AS psirts ON assets.serial_number = psirts.serial_number\\nINNER JOIN postgresql.public.pas_psirt_bulletins_view_1__3__1 AS bulletins ON psirts.psirt_id = bulletins.psirt_id\\nWHERE (psirts.check_id = '989')\",\n  \"params\": {},\n  \"table\": \"postgresql.public.cvi_assets_view_1__3__5\"\n}",
+        "type": "text"
+      }
+    ],
+    "isError": false
+  },
+  "metadata": {
+    "LANGSMITH_ENDPOINT": "https://langsmith.nprd.usw2.plat.cxp.csco.cloud/api/v1",
+    "LANGSMITH_OTEL_ENABLED": "true",
+    "LANGSMITH_PROJECT": "DEV--Security_Assessment_AI_Agent",
+    "LANGSMITH_TRACING": "true",
+    "langgraph_checkpoint_ns": "execute_agent:b9fdd1e3-ab8a-5ef8-53d7-cea68c315b49",
+    "langgraph_node": "execute_agent",
+    "langgraph_path": [
+      "__pregel_pull",
+      "execute_agent"
+    ],
+    "langgraph_step": 7,
+    "langgraph_triggers": [
+      "branch:to:execute_agent"
+    ],
+    "ls_integration": "langgraph",
+    "ls_method": "traceable",
+    "ls_run_depth": 6,
+    "otel_trace_id": "1bc13bb62347c46764d841ce1a431c78",
+    "thread_id": "b6f99799-a395-45b8-9d62-c2f0e2c4d45e"
+  },
+  "langsmith": {
+    "organization": {
+      "name": "CXPlatform_General",
+      "id": "cf5f102b-fab6-4887-9d51-6af25b54fb18"
+    },
+    "workspace": {
+      "name": "Cisco IQ - AI Assistant",
+      "id": "39da314d-30b7-4d39-885f-a09c95afc738"
+    },
+    "tracing_project": {
+      "id": "f61ac999-0a80-473f-85a0-a7ffdef42ee3",
+      "name": "ciq-agents-dev-usw2"
+    }
+  }
+}

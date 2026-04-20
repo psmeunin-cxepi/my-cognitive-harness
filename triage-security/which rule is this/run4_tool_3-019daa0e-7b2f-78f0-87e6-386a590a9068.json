@@ -1,0 +1,61 @@
+{
+  "inputs": {
+    "arguments": {
+      "sql": "SELECT bulletins.advisory_id, bulletins.headline_name, bulletins.severity_level_name, bulletins.summary_text, bulletins.cvss_score, bulletins.publish_date, bulletins.psirt_url_text\nFROM postgresql.public.cvi_assets_view_1__3__5\nWHERE (bulletins.psirt_id = 989)",
+      "x_authz": "eyJraWQiOiJpYW0tQlNQREt0dzhZbEtQbnBkTGpFRzA3bXgxTy1OMF9Ya1JxVkhkcjByT0I3MCIsImFsZyI6IlJTMjU2IiwidHlwIjoiSldUIn0.eyJzdWIiOiIzNzM2N2FjMS1mODgzLTQxNzctYTJkNS1iNDBmMzM2NzY4YjYiLCJpbnZva2VyX2Z1bGxfbmFtZSI6ImFzc2Vzc21lbnRzLXNlY3VyaXR5X3NlcnZpY2VfYWNjb3VudCIsImludm9rZXJfaWQiOiIzNzM2N2FjMS1mODgzLTQxNzctYTJkNS1iNDBmMzM2NzY4YjYiLCJpbnZva2VyX2VtYWlsIjoiYXNzZXNzbWVudHMtc2VjdXJpdHlfc2VydmljZV9hY2NvdW50IiwiaW52b2tlcl9hY2NvdW50X25hbWUiOiJhc3Nlc3NtZW50cy1zZWN1cml0eSIsImludm9rZXJfYWNjb3VudF9pZCI6IjkyOWNkOTM5LThmMGQtNGFmZi04ZDQwLWRkODVmZWM3MDdmYSIsImludm9rZXJfYXBwX2lkIjoiZjc2YmYwYmEtNWM5Mi00NzgyLTlmOWEtODZhYjJhNWE3OTk4IiwiaW52b2tlcl9hcHBfbmFtZSI6ImFzc2Vzc21lbnRzLXNlY3VyaXR5IiwiaW5pdGlhdG9yX2VtYWlsIjoicHNtZXVuaW5AY2lzY28uY29tIiwiaW5pdGlhdG9yX2Z1bGxfbmFtZSI6IlBoaWxpcCBTbWV1bmlueCIsImluaXRpYXRvcl9pZCI6Ijg5YTc5YTZiLTg0ZTQtNGQ0Ny1iN2QzLThlNjM2ZTlmZGMyMSIsImluaXRpYXRvcl9hY2NvdW50X2lkIjoiNzQ4MzNkM2EtMWQxNS00MDYwLWFkNGItMDgwZmVhOGNlNDQ0IiwiaW5pdGlhdG9yX2FjY291bnRfbmFtZSI6IlJ1YnkgTmV0d29ya3MtRGV2IiwiaW5pdGlhdG9yX2FjY291bnRfdHlwZSI6IkNVU1RPTUVSIiwiZGlyZWN0X2ludm9rZXJfZW1haWwiOiJwc21ldW5pbkBjaXNjby5jb20iLCJkaXJlY3RfaW52b2tlcl9mdWxsX25hbWUiOiJQaGlsaXAgU21ldW5pbngiLCJkaXJlY3RfaW52b2tlcl9pZCI6Ijg5YTc5YTZiLTg0ZTQtNGQ0Ny1iN2QzLThlNjM2ZTlmZGMyMSIsImRpcmVjdF9pbnZva2VyX2FjY291bnRfaWQiOiI3NDgzM2QzYS0xZDE1LTQwNjAtYWQ0Yi0wODBmZWE4Y2U0NDQiLCJkaXJlY3RfaW52b2tlcl9hcHBfaWQiOm51bGwsImRpcmVjdF9pbnZva2VyX2FwcF9uYW1lIjpudWxsLCJwZXJtaXNzaW9uIjoiIiwiZnVsbF9uYW1lIjoiUGhpbGlwIFNtZXVuaW54IiwidXNlcklkIjoiODlhNzlhNmItODRlNC00ZDQ3LWI3ZDMtOGU2MzZlOWZkYzIxIiwidGVuYW50SWQiOiI3NDgzM2QzYS0xZDE1LTQwNjAtYWQ0Yi0wODBmZWE4Y2U0NDQiLCJjbG91ZFJlZ2lvbiI6IlVTIiwiZW5mb3JjZWRFbnRpdGxlbWVudExldmVsIjowLCJpYXQiOjE3NzY2NzQ1NTMsImV4cCI6MTc3NjY3ODE1MywiaW5pdGlhdG9yX2Njb2lkIjoicHNtZXVuaW4iLCJpbml0aWF0b3JfYWNjZXNzX2xldmVsIjo0LCJpbml0aWF0b3JfY29tcGFueV9uYW1lIjoiQ2lzY28gU3lzdGVtcywgSW5jLiIsInNlc3Npb25faWQiOiIxZjU4ZTM5Zi1iZGRiLTRlZWYtYTRkZi01MWRmOWI4ZjVkYTAifQ.PWaueoTP8XqkA9e2GkY7vYmaFGsDJUDUVJc90tXufLwE7843KkAmGsmIF2ZDhwbBT6LKYLQCBS047ApI_FWzdmfVvNkEVxkO_haGeDGxNyXqZPkpAlsFq0Of-i6T8KJDjxlWYqu_cww7TSK7hf3QlhpYKCN0CO-NinG7-VS_Te4cg12VgkHboNecsivTc9hK67JlqffTzwebh0yVZRniBxMUcdZuXPttKJzJ0D48-YiyFDxWzqfkEo1wmqZ9rBsipNTXE_kjaRvLen4B2UWvom28YRKWZOnStb4-b68XGfvqVjcjm_wr0wgiyuqw81mNrkdTzEiQFy5QOMhWCOt8AQ"
+    },
+    "name": "run_sql_query"
+  },
+  "outputs": {
+    "content": [
+      {
+        "text": "{\n  \"error\": true,\n  \"message\": \"Query failed: one or more column names are invalid. Call mcp_get_table_schema to verify available columns and retry.\",\n  \"rows\": [],\n  \"row_count\": 0,\n  \"columns\": [],\n  \"truncated\": false\n}",
+        "type": "text"
+      }
+    ],
+    "isError": false,
+    "structuredContent": {
+      "columns": [],
+      "error": true,
+      "message": "Query failed: one or more column names are invalid. Call mcp_get_table_schema to verify available columns and retry.",
+      "row_count": 0,
+      "rows": [],
+      "truncated": false
+    }
+  },
+  "metadata": {
+    "LANGSMITH_ENDPOINT": "https://langsmith.nprd.usw2.plat.cxp.csco.cloud/api/v1",
+    "LANGSMITH_OTEL_ENABLED": "true",
+    "LANGSMITH_PROJECT": "DEV--Security_Assessment_AI_Agent",
+    "LANGSMITH_TRACING": "true",
+    "langgraph_checkpoint_ns": "execute_agent:b9fdd1e3-ab8a-5ef8-53d7-cea68c315b49",
+    "langgraph_node": "execute_agent",
+    "langgraph_path": [
+      "__pregel_pull",
+      "execute_agent"
+    ],
+    "langgraph_step": 7,
+    "langgraph_triggers": [
+      "branch:to:execute_agent"
+    ],
+    "ls_integration": "langgraph",
+    "ls_method": "traceable",
+    "ls_run_depth": 6,
+    "otel_trace_id": "1bc13bb62347c46764d841ce1a431c78",
+    "thread_id": "b6f99799-a395-45b8-9d62-c2f0e2c4d45e"
+  },
+  "langsmith": {
+    "organization": {
+      "name": "CXPlatform_General",
+      "id": "cf5f102b-fab6-4887-9d51-6af25b54fb18"
+    },
+    "workspace": {
+      "name": "Cisco IQ - AI Assistant",
+      "id": "39da314d-30b7-4d39-885f-a09c95afc738"
+    },
+    "tracing_project": {
+      "id": "f61ac999-0a80-473f-85a0-a7ffdef42ee3",
+      "name": "ciq-agents-dev-usw2"
+    }
+  }
+}
