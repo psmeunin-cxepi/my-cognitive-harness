@@ -23,7 +23,7 @@
 
 **Severity:** High — agent returned no answer  
 **Trace:** `019daa0e-2d55-7bf2-a924-e54a0c167711` (run2)  
-**Detail:** [`which rule is this/CXP-triage-results.md`](which%20rule%20is%20this/CXP-triage-results.md)
+**Detail:** [`which rule is this/CXP-triage-results.md`](https://github.com/psmeunin-cxepi/my-cognitive-harness/blob/main/CXP-29167/which%20rule%20is%20this/CXP-triage-results.md)
 
 The LLM translated the UI key `checkId` from the runtime context (camelCase) into `psirts.check_id` (snake_case), a column that does not exist in any schema table. The schema had been returned by `mcp_get_table_schema` in the same context window — the hallucination occurred despite the schema being visible.
 
@@ -36,7 +36,7 @@ The LLM translated the UI key `checkId` from the runtime context (camelCase) int
 
 **Severity:** High — agent returned no answer  
 **Trace:** `019daa0e-2d55-7bf2-a924-e54a0c167711` (run4)  
-**Detail:** [`which rule is this/CXP-triage-results.md`](which%20rule%20is%20this/CXP-triage-results.md)
+**Detail:** [`which rule is this/CXP-triage-results.md`](https://github.com/psmeunin-cxepi/my-cognitive-harness/blob/main/CXP-29167/which%20rule%20is%20this/CXP-triage-results.md)
 
 After the hallucination failure, the LLM retried with the correct filter (`bulletins.psirt_id = 989`) but omitted the `target_table_alias` parameter. The `mcp_build_sql_by_domain` wrapper silently defaulted to `target_table_alias = "assets"`, then forwarded `table_name = cvi_assets_view` to `build_sql_query` along with `bulletins.*` columns and no JOINs.
 
@@ -50,7 +50,7 @@ After the hallucination failure, the LLM retried with the correct filter (`bulle
 
 **Severity:** Medium — agent self-corrected, recoverable  
 **Trace:** `019daa08-b091-7af3-8d6f-e83b4066aae8` (call 1)  
-**Detail:** [`Explain me more about this vulnerability/CXP-triage-results.md`](Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-results.md)
+**Detail:** [`Explain me more about this vulnerability/CXP-triage-results.md`](https://github.com/psmeunin-cxepi/my-cognitive-harness/blob/main/CXP-29167/Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-results.md)
 
 The LLM filtered on `psirts.sav_id = '989'` (string) instead of `bulletins.psirt_id = 989` (integer). The schema description for `sav_id` reads "vulnerability internal identifier" — semantically close to what the LLM was trying to filter on. The type mismatch error from `build_sql_query` provided enough signal for the LLM to self-correct on the next call.
 
@@ -63,7 +63,7 @@ The LLM filtered on `psirts.sav_id = '989'` (string) instead of `bulletins.psirt
 
 **Severity:** Medium — answer not incorrect, sequencing wrong  
 **Trace:** `019daa08-b091-7af3-8d6f-e83b4066aae8`  
-**Detail:** [`Explain me more about this vulnerability/CXP-triage-rag-results.md`](Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-rag-results.md)
+**Detail:** [`Explain me more about this vulnerability/CXP-triage-rag-results.md`](https://github.com/psmeunin-cxepi/my-cognitive-harness/blob/main/CXP-29167/Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-rag-results.md)
 
 The LLM called `mcp_rag_data` as its **first tool**, before `mcp_get_table_schema` or any SQL call. Rule 1 in the system prompt mandates SQL-first when `checkId` is present. The LLM applied Rule 3 instead (conceptual/explanatory questions → RAG) because the "Explain me more" phrasing matched Rule 3's framing without ambiguity resolution in Rule 1.
 
@@ -76,7 +76,7 @@ The LLM called `mcp_rag_data` as its **first tool**, before `mcp_get_table_schem
 
 **Severity:** High — RAG is unreliable for identifier-based queries  
 **Traces:** `019daa08-b091-7af3-8d6f-e83b4066aae8`, confirmed by `019daa0e-2d55-7bf2-a924-e54a0c167711`  
-**Detail:** [`Explain me more about this vulnerability/CXP-triage-rag-search-results.md`](Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-rag-search-results.md)
+**Detail:** [`Explain me more about this vulnerability/CXP-triage-rag-search-results.md`](https://github.com/psmeunin-cxepi/my-cognitive-harness/blob/main/CXP-29167/Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-rag-search-results.md)
 
 In both traces the LLM constructed the RAG query by embedding the numeric `checkId` value in the query string (`"Cisco security advisory check ID 989"`, `"Cisco PSIRT rule ID 989"`). Both calls returned 3 unrelated advisories — the correct advisory (`cisco-sa-20180620-nx-os-cli-execution`) was absent from all results.
 
@@ -122,7 +122,7 @@ Extend `chat_with_rag` (`rag_mcp/server.py`) to accept an optional `advisory_id`
 
 | File | Covers |
 |---|---|
-| [`which rule is this/CXP-triage-results.md`](which%20rule%20is%20this/CXP-triage-results.md) | Issues 1 & 2 — hallucination, missing `target_table_alias`, `build_sql_query` silent failure |
-| [`Explain me more about this vulnerability/CXP-triage-results.md`](Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-results.md) | Issue 3 — `sav_id` TYPE_MISMATCH and self-correction |
-| [`Explain me more about this vulnerability/CXP-triage-rag-results.md`](Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-rag-results.md) | Issue 4 — RAG called before SQL, Rule 1 vs Rule 3 conflict |
-| [`Explain me more about this vulnerability/CXP-triage-rag-search-results.md`](Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-rag-search-results.md) | Issue 5 — RAG search query failure, Weaviate schema analysis, fix options |
+| [`which rule is this/CXP-triage-results.md`](https://github.com/psmeunin-cxepi/my-cognitive-harness/blob/main/CXP-29167/which%20rule%20is%20this/CXP-triage-results.md) | Issues 1 & 2 — hallucination, missing `target_table_alias`, `build_sql_query` silent failure |
+| [`Explain me more about this vulnerability/CXP-triage-results.md`](https://github.com/psmeunin-cxepi/my-cognitive-harness/blob/main/CXP-29167/Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-results.md) | Issue 3 — `sav_id` TYPE_MISMATCH and self-correction |
+| [`Explain me more about this vulnerability/CXP-triage-rag-results.md`](https://github.com/psmeunin-cxepi/my-cognitive-harness/blob/main/CXP-29167/Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-rag-results.md) | Issue 4 — RAG called before SQL, Rule 1 vs Rule 3 conflict |
+| [`Explain me more about this vulnerability/CXP-triage-rag-search-results.md`](https://github.com/psmeunin-cxepi/my-cognitive-harness/blob/main/CXP-29167/Explain%20me%20more%20about%20this%20vulnerability/CXP-triage-rag-search-results.md) | Issue 5 — RAG search query failure, Weaviate schema analysis, fix options |
