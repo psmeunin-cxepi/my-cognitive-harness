@@ -13,9 +13,9 @@
 
 ## Summary
 
-The SQL alias `impacted_assets_count` is **entirely invented by the LLM**. It does not appear in the system prompt, the schema response, or any source code in `CXEPI/risk-app`. A GitHub code search for `impacted_assets_count` returns 0 results. The only `impacted_assets` match is in an unrelated data model file (`lifecycle/data_fabric/data_models/sec-hrd-data-model/entity/insights.json`), not in the agent or prompt code.
+The primary issue is **data accuracy**: the SQL counts all psirt records via `COUNT(DISTINCT psirts.serial_number)` without filtering on `psirts.vulnerability_status`, combining both `VUL` (affected) and `POTVUL` (potentially affected) assets into a single number. The UI shows these as two separate columns — "Affected Assets" and "Potentially Affected Assets" — so the returned count is incorrect regardless of what alias the LLM chose.
 
-The LLM translated the user's concept of "most impact" into `COUNT(DISTINCT psirts.serial_number)` and chose `impacted_assets_count` as a descriptive SQL `AS` alias for the aggregated column. This is standard SQL aliasing behavior.
+The root cause is that the schema description for `psirts.vulnerability_status` is too vague and note #3 reads as an optional filtering hint, not a mandatory aggregation rule. The LLM had no clear instruction to split or filter on this column when counting assets.
 
 ---
 
@@ -93,8 +93,38 @@ COUNT(DISTINCT CASE WHEN psirts.vulnerability_status = 'POTVUL'
       THEN psirts.serial_number END) AS potentially_affected_assets_count
 ```
 
-### Schema fix recommendation
+### Fix Recommendations
 
-Add a note to the `get_table_schema` response:
+The fix should go in **two places** within the schema response returned by `get_table_schema`:
 
-> *"When counting impacted/affected assets per advisory, always filter or split on `psirts.vulnerability_status`. `VUL` = affected (confirmed vulnerable), `POTVUL` = potentially affected (manual verification required). A bare `COUNT` without this filter combines both statuses and does not match the UI breakdown."*
+#### 1. `psirts.vulnerability_status` column description
+
+**File:** `text2sql_mcp/schema_advisory.py` — `ADVISORY_COLUMN_SCHEMA`
+
+**Current:**
+```
+"Vulnerability assessment status."
+```
+
+**Proposed:**
+```
+"Vulnerability assessment status. VUL = confirmed vulnerable (maps to UI 'Affected Assets'). POTVUL = potentially vulnerable, manual verification required (maps to UI 'Potentially Affected Assets'). When counting impacted assets, MUST split or filter on this column."
+```
+
+This is the first place the LLM encounters the column — a richer description maps enum values to business concepts directly at the point of discovery.
+
+#### 2. `notes[]` array — add or strengthen the aggregation rule
+
+**File:** `text2sql_mcp/server.py` — `_get_schema_for_domain()`, notes list
+
+**Current note #3:**
+```
+"Use psirts.vulnerability_status (VUL/POTVUL) to filter vulnerable assets."
+```
+
+**Proposed (replace or add as new note):**
+```
+"When counting impacted/affected assets per advisory, you MUST filter or split on psirts.vulnerability_status. VUL = affected (confirmed vulnerable), POTVUL = potentially affected (manual verification required). A bare COUNT without this filter combines both statuses and does not match the UI breakdown."
+```
+
+Both changes are needed — the column description provides inline context when the LLM reads column metadata, and the note provides a mandatory rule that governs aggregation queries specifically.

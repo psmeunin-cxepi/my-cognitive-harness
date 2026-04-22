@@ -59,23 +59,19 @@ The `mcp_get_table_schema` response for the `security_advisory` domain returns a
 
 ### 1. `notes[]` are treated as optional hints
 
-The LLM receives notes like:
+The system prompt never tells the LLM that `notes[]` are mandatory rules. Without that instruction, the LLM treats them as suggestions. In the traced run, the LLM ignored note #3 entirely — it never filtered on `vulnerability_status`, resulting in a count that conflates affected and potentially affected assets.
 
-> *"Use psirts.vulnerability_status (VUL/POTVUL) to filter vulnerable assets."*
+### 2. No instruction to map user concepts to `column_schema` metadata
 
-Without guidance that notes are **mandatory rules**, the LLM treats them as suggestions. In the traced run, the LLM ignored note #3 entirely — it never filtered on `vulnerability_status`, resulting in a count that conflates affected (`VUL`) and potentially affected (`POTVUL`) assets.
+The system prompt says "learn column names and relationships" but never instructs the LLM to read `description` and `enum` fields in `column_schema[]` and map user-facing concepts (e.g., "affected assets") to specific enum values. The LLM has to infer this mapping on its own.
 
-### 2. Column descriptions are underused
+### 3. `example_filters[]` have no defined priority
 
-The `psirts.vulnerability_status` column has `description: "Vulnerability assessment status."` and `enum: ["VUL", "POTVUL"]`. The LLM saw this but had no instruction to map these values to business concepts (affected vs. potentially affected). A richer description or a prompt-level mapping would have prevented the data accuracy issue.
+The system prompt doesn't mention `example_filters[]` at all. The LLM has no instruction to treat them as recommended patterns, so it has no reason to prefer them over ad-hoc filter construction.
 
-### 3. `example_filters` are not emphasized
+### 4. `relationships[]` worked without guidance
 
-The schema includes `psirts.vulnerability_status = 'VUL'` as an example filter. Without prompt guidance to treat examples as recommended patterns, the LLM has no reason to prioritize them.
-
-### 4. `relationships[]` were used correctly
-
-The LLM did correctly use the `relationships[]` data to construct the JOIN. This is the one field that mapped intuitively to SQL construction without needing explicit guidance.
+The LLM correctly used `relationships[]` to construct the JOIN. This is the one field that mapped intuitively to SQL construction without needing explicit prompt guidance.
 
 ---
 
@@ -138,45 +134,11 @@ Replace with something like:
 
 > `"Get internal query metadata for a security domain. Returns notes (mandatory rules), column_schema (column definitions with types and enums), relationships (JOIN definitions), and example_filters (recommended WHERE patterns). Apply all notes as mandatory constraints when building SQL. Do not expose details to the user."`
 
-### 3. Schema response — strengthen `notes[]` and enrich column descriptions
-
-**File:** `text2sql_mcp/server.py` — `_get_schema_for_domain()`
-
-The fix should go in **two places** within the schema response:
-
-#### a. `psirts.vulnerability_status` column description
-
-**Current:**
-```
-"Vulnerability assessment status."
-```
-
-**Proposed:**
-```
-"Vulnerability assessment status. VUL = confirmed vulnerable (affected assets). POTVUL = potentially vulnerable (manual verification required). When counting assets, always split or filter on this column to match the UI breakdown."
-```
-
-This is the first place the LLM encounters the column — a richer description maps enum values to business concepts directly at the point of discovery.
-
-#### b. `notes[]` array — add or strengthen the aggregation rule
-
-**Current note #3:**
-```
-"Use psirts.vulnerability_status (VUL/POTVUL) to filter vulnerable assets."
-```
-
-**Proposed (replace or add as new note):**
-```
-"When counting impacted/affected assets per advisory, you MUST filter or split on psirts.vulnerability_status. VUL = affected (confirmed vulnerable), POTVUL = potentially affected (manual verification required). A bare COUNT without this filter combines both statuses and does not match the UI breakdown."
-```
-
-Both changes are needed — the column description provides inline context when the LLM reads column metadata, and the note provides a mandatory rule that governs aggregation queries specifically.
-
 ### Summary of changes
 
 | File | Location | Change |
 |------|----------|--------|
 | `prompts/security_assessment_v1_mistral.py` | System prompt | Add `<schema_interpretation>` block + concept mappings |
 | `impl/security_assessment_agent_impl.py` | `mcp_get_table_schema` docstring (~line 588) | Describe response structure (notes, column_schema, relationships, example_filters) |
-| `text2sql_mcp/server.py` | `psirts.vulnerability_status` column description | Enrich with VUL/POTVUL business meaning + aggregation guidance |
-| `text2sql_mcp/server.py` | `notes[]` array (note #3) | Strengthen to MUST language + explicit aggregation rule |
+
+Schema-level fixes (`notes[]` wording, column descriptions) are documented in [CXP-triage.md](CXP-triage.md#fix-recommendations).
