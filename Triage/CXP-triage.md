@@ -13,9 +13,9 @@
 
 ## Summary
 
-The generated SQL counts **all** psirt records (`COUNT(DISTINCT psirts.serial_number)`) with **no filter on `psirts.vulnerability_status`**, combining both `VUL` (confirmed vulnerable) and `POTVUL` (potentially vulnerable) assets into a single number. The UI shows these as two separate columns — "Affected Assets" and "Potentially Affected Assets" — so the returned count is inaccurate: it conflates the two statuses and does not match either UI column.
+The SQL alias `impacted_assets_count` is **entirely invented by the LLM**. It does not appear in the system prompt, the schema response, or any source code in `CXEPI/risk-app`. A GitHub code search for `impacted_assets_count` returns 0 results. The only `impacted_assets` match is in an unrelated data model file (`lifecycle/data_fabric/data_models/sec-hrd-data-model/entity/insights.json`), not in the agent or prompt code.
 
-The schema provides the `vulnerability_status` enum and a filtering hint (note #3), but the column and note descriptions lack the semantic clarity to convey that a bare `COUNT` without splitting by status produces a meaningless number. The LLM defaulted to counting all records.
+The LLM translated the user's concept of "most impact" into `COUNT(DISTINCT psirts.serial_number)` and chose `impacted_assets_count` as a descriptive SQL `AS` alias for the aggregated column. This is standard SQL aliasing behavior.
 
 ---
 
