@@ -7,8 +7,6 @@
 **Date:** 2026-04-22  
 **User question:** "I don't understand what this vulnerability talks about, can you give me more details?"
 
-**Related:** [CXP-triage.md](CXP-triage.md) — earlier trace in the same conversation (`019db47d-5e25-7a40-8e88-887392a1db1b`) where the top-5 advisory list was returned.
-
 ---
 
 ## Summary
