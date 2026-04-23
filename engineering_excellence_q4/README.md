@@ -82,7 +82,7 @@ Q4 is a window to invest in the platform before the next major feature cycle. St
 | EE-3 Common MCP Server | `ee3_common_mcp/` | TBD | Not started |
 | EE-4 LangSmith Platform Migration | `ee4_langsmith_migration/` | TBD | Not started |
 | EE-5 GraphState & Checkpointer | `ee5_graph_state/` | TBD | Not started |
-| EE-6 Agent Behavioural Spec | `../agent_behavioural_spec/` | Philip Smeuninx | In progress |
+| EE-6 Agent Behavioural Spec | `ee6_agent_behaviour/` | TBD | Not started |
 ....
 
 ---
