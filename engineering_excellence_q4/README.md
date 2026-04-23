@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Owner** | Philip Smeuninx |
+| **Owners** | Philip Smeuninx, ... |
 | **Horizon** | Q4 FY — May 1 to July 31, 2026 |
 | **Type** | Engineering-driven (not PM/JIRA feature requests) |
 | **Status** | Planning |
@@ -24,6 +24,7 @@ The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights
 | EE-3 | **Common MCP Server** | Extract shared MCP tools (data access, Trino queries, ID resolution) into a single shared server |
 | EE-4 | **LangSmith Platform Migration** | Adopt LangSmith as the unified platform for agent deployment, tracing, and evaluation |
 | EE-5 | **GraphState & Checkpointer** | Implement consistent `GraphState` schemas and LangGraph checkpointer patterns across all agents |
+| EE-6 | **Agent Behavioural Spec** | Define and maintain normative behavioral specifications (RFCs) for all agents; establish compliance tooling and eval coverage |
 ...
 
 ---
@@ -36,6 +37,7 @@ Each Cisco IQ domain agent was built to solve a specific product problem — con
 
 - **Duplicated implementations** of retrieval, MCP tooling, context parsing, and prompt patterns — multiplying maintenance cost for every change
 - **Behavioral drift** — agents handle the same situations (context switching, deictic resolution, portfolio-wide queries) in different and sometimes incorrect ways, as documented in [RFC-001](../agent_behavioural_spec/rfc_context_switch.md)
+- **No shared behavioral contract** — there is no normative specification of what agents are required to do, making it impossible to audit compliance, write cross-agent evals, or onboard agents to a shared standard
 - **Steep onboarding cost** — a developer moving between agents must re-learn each codebase's bespoke patterns
 
 ### The Opportunity
@@ -82,6 +84,7 @@ Q4 is a window to invest in the platform before the next major feature cycle. St
 | EE-3 Common MCP Server | `ee3_common_mcp/` | TBD | Not started |
 | EE-4 LangSmith Platform Migration | `ee4_langsmith_migration/` | TBD | Not started |
 | EE-5 GraphState & Checkpointer | `ee5_graph_state/` | TBD | Not started |
+| EE-6 Agent Behavioural Spec | `../agent_behavioural_spec/` | Philip Smeuninx | In progress |
 ....
 
 ---
