@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Owners** | Philip Smeuninx, ... |
+| **Owners** | TBD |
 | **Horizon** | Q4 FY — May 1 to July 31, 2026 |
 | **Type** | Engineering-driven (not PM/JIRA feature requests) |
 | **Status** | Planning |
