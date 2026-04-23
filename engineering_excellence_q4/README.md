@@ -15,7 +15,7 @@ A set of engineering-driven initiatives to standardize agent architecture, reduc
 
 The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights (HRI)**, **Security Advisory**, **Security Hardening**, **LDOS**, and **Health Check**. Each was built independently, resulting in parallel implementations of the same concerns: RAG retrieval, MCP tooling, context handling, state management, and observability.
 
-### Workstreams (to be confirmed)
+### Workstreams (to be discussed)
 
 | Workstream | Summary |
 |---|---|
