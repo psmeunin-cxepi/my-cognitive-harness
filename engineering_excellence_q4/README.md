@@ -17,14 +17,14 @@ The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights
 
 ### Workstreams (to be confirmed)
 
-| # | Workstream | Summary |
-|---|---|---|
-| EE-1 | **Agent Architecture Patterns** | Define and document standard LangGraph patterns (node structure, state schema, error handling) for all agents |
-| EE-2 | **Common RAG Strategy** | Converge on a single ingestion pipeline and standardized retrieval options per document category |
-| EE-3 | **Common MCP Server** | Extract shared MCP tools (data access, Trino queries, ID resolution) into a single shared server |
-| EE-4 | **LangSmith Platform Migration** | Adopt LangSmith as the unified platform for agent deployment, tracing, and evaluation |
-| EE-5 | **GraphState & Checkpointer** | Implement consistent `GraphState` schemas and LangGraph checkpointer patterns across all agents |
-| EE-6 | **Agent Behavioural Spec** | Define and maintain normative behavioral specifications (RFCs) for all agents; establish compliance tooling and eval coverage |
+| Workstream | Summary |
+|---|---|
+| **EE-1 — Agent Architecture Patterns** | Define and document standard LangGraph patterns (node structure, state schema, error handling) for all agents |
+| **EE-2 — Common RAG Strategy** | Converge on a single ingestion pipeline and standardized retrieval options per document category |
+| **EE-3 — Common MCP Server** | Extract shared MCP tools (data access, Trino queries, ID resolution) into a single shared server |
+| **EE-4 — LangSmith Platform Migration** | Adopt LangSmith as the unified platform for agent deployment, tracing, and evaluation |
+| **EE-5 — GraphState & Checkpointer** | Implement consistent `GraphState` schemas and LangGraph checkpointer patterns across all agents |
+| **EE-6 — Agent Behavioural Spec** | Define and maintain normative behavioral specifications (RFCs) for all agents; establish compliance tooling and eval coverage |
 ...
 
 ---
@@ -69,9 +69,7 @@ Q4 is a window to invest in the platform before the next major feature cycle. St
 ### Out of Scope for Q4
 
 - New product features
-- A2A protocol changes
-- Infrastructure / Kubernetes changes
-- Cross-org (ACP) standardization
+- ....
 
 ---
 
