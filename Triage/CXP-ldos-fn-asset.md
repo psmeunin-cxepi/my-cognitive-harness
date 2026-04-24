@@ -64,9 +64,16 @@ In `common/guardrails/guardrail_prompts.py`:
 
 > "ONLY count-based field notice questions are valid, and ONLY for critical and high severity levels. Questions asking for field notice details, descriptions, remediation steps, specific FN IDs, content of individual field notices, or severity levels other than critical/high are NOT valid and must be rejected."
 
-### View name vs. column schema — two separate things
+### Table name vs. column schema — two separate things
 
-The **view name** (e.g., `cvi_assets_view_1__3__5`) is **not hardcoded** — it comes from the env var `CVI_LDOS_AI_DATA_INTERNAL_TABLE_NAME` (or `CVI_LDOS_AI_DATA_CUSTOMER_TABLE_NAME` for external users), set in the K8s secret `api-secrets`. It could point to a different view without a code change.
+The **table name** is **not hardcoded** — it comes from env vars in the K8s secret `api-secrets`. There are **two different tables** depending on caller type:
+
+| Env var | Actual value (dev) | Used for |
+|---|---|---|
+| `CVI_LDOS_AI_DATA_CUSTOMER_TABLE_NAME` | `cvi_assets_view_1__3__5` | Customer-facing (external) queries |
+| `CVI_LDOS_AI_DATA_INTERNAL_TABLE_NAME` | `cvi_assets_internal_view_1__0__17` | Cisco-internal queries |
+
+The customer table is produced by `cvi_assets_udm_cxc_template.yaml`; the internal table by `cvi_assets_internal_udm_template.yaml` (both in `CXEPI/cvi-success-track-config`, `etl/cvi/` directory).
 
 The **column schema** (what columns exist, their types, descriptions, usage rules) **is hardcoded** in `common/db_schema/ldos_db_schema.py` — constants `LDOS_TABLE_DESCRIPTION` and `LDOS_COLUMN_METADATA`. The LLM is told "this view has these columns" and generates SQL accordingly. There is zero dynamic schema introspection (`SHOW COLUMNS`, `DESCRIBE`, `INFORMATION_SCHEMA` are never called).
 
@@ -264,6 +271,52 @@ Using the Data Fabric API (`/data-fabric/v1alpha/tables`), we enumerated all 506
 
 ---
 
+## Live Prod Schema vs. Agent Schema — Drift Analysis
+
+**Source:** Live `cvi_assets_view_1__3__5` schema from **PROD usw2** (captured 2026-04-24 via `information_schema.columns`). See [schema/cvi_assets_view_1__3__5_prod_usw2_schema.md](schema/cvi_assets_view_1__3__5_prod_usw2_schema.md) for the full 162-column listing.
+
+| Metric | Value |
+|---|---|
+| PG table columns (prod) | **162** |
+| Agent hardcoded columns (`LDOS_COLUMN_METADATA`) | **54** |
+| In PG but **not** in agent schema | **111** — the LLM can't query these |
+| In agent schema but **not** in PG | **3** — phantom columns that would cause SQL errors |
+
+### FN-related columns in prod PG table
+
+Only two — both integer counts, confirming the ETL analysis:
+
+| Column | Type | Maps to |
+|---|---|---|
+| `critical_vulnerability_field_notice_count` | integer | `transform_advisory_counts` → `udm_field_notice` + `udm_field_notice_bulletins` |
+| `high_vulnerability_field_notice_count` | integer | same |
+
+No `field_notice_id`, no `vulnerability_status`, no `vulnerability_reason`. The live prod schema confirms what the ETL template told us: `udm_field_notice` data flows in, but only counts survive to the output table.
+
+### Phantom columns (in agent schema, missing from PG)
+
+These 3 columns are in `LDOS_COLUMN_METADATA` but do **not exist** in the prod table. If the LLM generates SQL using them, the query will fail:
+
+| Column | In agent schema? | In prod PG? |
+|---|---|---|
+| `contract_type` | YES | **NO** |
+| `product_list_price` | YES | **NO** |
+| `sav_id` | YES | **NO** |
+
+### Notable columns available in PG but hidden from agent (111 total)
+
+Examples of potentially useful columns the agent doesn't know about:
+
+- `customer_name`, `account_name` — customer identification
+- `advisory_count`, `all_advisory_count` — total advisory aggregates
+- `affected_security_advisories_count`, `potentially_affected_security_advisories_count` — finer PSIRT breakdowns
+- `sweox_*` (15 columns) — software end-of-life milestones
+- `hweox_*` (additional to what agent has) — more hardware EOL milestones
+- `*_latest_signal` (7 columns) — last signal timestamps by type
+- `migration_info`, `vendor`, `quantity` — asset metadata
+
+---
+
 ## What Would It Take to Support "Which assets are impacted by FN74267?"
 
 The data exists upstream. The technical path:
@@ -286,6 +339,8 @@ The constraint is not data availability — the ETL already reads `udm_field_not
 | How do FN counts reach the table? | The ETL's `transform_advisory_counts` step reads `udm_field_notice` + `udm_field_notice_bulletins` **directly from Iceberg**, JOINs on `field_notice_id`, counts per device, and the main transform JOINs counts into the output |
 | Why no PG clones for CVI tables? | PG clones aren't needed — the ETL reads from Iceberg directly. The final aggregated result is written to PG as the serving table |
 | Where is `field_notice_id` discarded? | In the `GROUP BY telemetry_dimension_key` of `transform_advisory_counts` — the UNION subquery selects `field_notice_id`, but the outer aggregation collapses to counts |
+| Does the live PG table have FN ID columns? | **No.** Confirmed from prod schema (162 columns) — only `critical_vulnerability_field_notice_count` and `high_vulnerability_field_notice_count` (integers) |
+| Does the agent schema match the actual PG table? | **No.** Agent sees 54 of 162 columns; 3 phantom columns (`contract_type`, `product_list_price`, `sav_id`) don't exist in prod |
 
 ## What We Still Need
 
@@ -296,18 +351,12 @@ The constraint is not data availability — the ETL already reads `udm_field_not
 **From whom:** The **LDOS AI Product Manager** — whoever owns the CXP-3358 epic and the FN-related Jiras.  
 **Ask:** "Is per-FN-ID asset impact querying in scope for LDOS AI? The data flows through the ETL already — the blocker is a transform design choice, not data availability."
 
-### 2. `CVI_TRINO_SERVICE_CREDENTIALS` for local Trino access
-
-**What:** The base64-encoded service credential that grants Trino query access to CVI tables via the `postgresql` catalog.  
-**Why:** Would let us verify the actual PG table columns against the hardcoded schema in `ldos_db_schema.py`.  
-**From whom:** A **LDOS AI team member** who has set up local Trino testing before. Set as env var `CVI_TRINO_SERVICE_CREDENTIALS` — IAM-provisioned, not in K8s secrets.  
-**Note:** This is nice-to-have now. We have the full ETL SQL, so we know exactly what columns the table has.
-
 ### Summary table
 
 | # | What | From whom | Status |
 |---|---|---|---|
 | ~~1~~ | ~~View DDL~~ | ~~Data team~~ | **RESOLVED** — found in `cvi-success-track-config` ETL template |
 | ~~2~~ | ~~How FN counts reach the table~~ | ~~Data team~~ | **RESOLVED** — `transform_advisory_counts` reads directly from Iceberg |
-| 3 | PM decision on FN query scope | LDOS AI Product Manager | **OPEN** — decides if we proceed |
-| 4 | `CVI_TRINO_SERVICE_CREDENTIALS` | LDOS AI team member | **NICE-TO-HAVE** — for local verification |
+| ~~3~~ | ~~Live PG schema~~ | ~~Colleague with Trino access~~ | **RESOLVED** — 162 columns captured from prod, confirms no FN ID columns |
+| ~~4~~ | ~~Agent schema drift~~ | ~~(self)~~ | **RESOLVED** — 54 vs 162 columns; 3 phantom columns identified |
+| 5 | PM decision on FN query scope | LDOS AI Product Manager | **OPEN** — decides if we proceed |
