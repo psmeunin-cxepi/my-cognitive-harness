@@ -52,7 +52,7 @@ Source Systems (PAS, telemetry, etc.)
                LDOS AI Agent (aiotrino client)
 ```
 
-**Key point:** Trino is a pass-through query federation layer, not a data store. It connects to PostgreSQL (consumption clones) via `catalog="postgresql"`, `schema="public"`. The agent's hardcoded schema tells the LLM which columns exist — it never introspects the database dynamically.
+**Key point:** Trino is a pass-through query federation layer, not a data store. It connects to PostgreSQL via `catalog="postgresql"`, `schema="public"`. PostgreSQL contains both Data Fabric consumption clone tables and manually-created views. The agent queries a specific **view** whose name comes from an environment variable, using a **column schema** that is hardcoded in Python source code.
 
 ---
 
@@ -64,9 +64,13 @@ In `common/guardrails/guardrail_prompts.py`:
 
 > "ONLY count-based field notice questions are valid, and ONLY for critical and high severity levels. Questions asking for field notice details, descriptions, remediation steps, specific FN IDs, content of individual field notices, or severity levels other than critical/high are NOT valid and must be rejected."
 
-### Hardcoded schema
+### View name vs. column schema — two separate things
 
-The agent's view of the database is 100% defined in `common/db_schema/ldos_db_schema.py` — constants `LDOS_TABLE_DESCRIPTION` and `LDOS_COLUMN_METADATA`. There is zero dynamic schema introspection (`SHOW COLUMNS`, `DESCRIBE`, `INFORMATION_SCHEMA` are never called).
+The **view name** (e.g., `cvi_assets_view_1__3__5`) is **not hardcoded** — it comes from the env var `CVI_LDOS_AI_DATA_INTERNAL_TABLE_NAME` (or `CVI_LDOS_AI_DATA_CUSTOMER_TABLE_NAME` for external users), set in the K8s secret `api-secrets`. It could point to a different view without a code change.
+
+The **column schema** (what columns exist, their types, descriptions, usage rules) **is hardcoded** in `common/db_schema/ldos_db_schema.py` — constants `LDOS_TABLE_DESCRIPTION` and `LDOS_COLUMN_METADATA`. The LLM is told "this view has these columns" and generates SQL accordingly. There is zero dynamic schema introspection (`SHOW COLUMNS`, `DESCRIBE`, `INFORMATION_SCHEMA` are never called).
+
+If the view name were changed to point to a view with different columns, the hardcoded column schema would be out of sync.
 
 The only FN-related columns in the hardcoded schema are:
 
@@ -130,10 +134,12 @@ Data Fabric manages **tables** (Iceberg + optional PG clones). Views are a layer
 
 Trino is a **query federation engine**, not a database. It exposes multiple catalogs:
 
-- `postgresql` catalog → queries the PG consumption clones
+- `postgresql` catalog → queries the PostgreSQL database, which contains both Data Fabric consumption clone tables **and** manually-created views like `cvi_assets_view_1__3__5`
 - `iceberg` catalog → queries the Iceberg datalake tables on S3 directly
 
-The LDOS agent is configured to use `catalog="postgresql"`, so it only sees data that's been cloned into PG. The raw Iceberg tables (including `udm_field_notice`) are theoretically queryable via the `iceberg` catalog, but the agent isn't configured for that.
+Trino doesn't know or care what a "consumption clone" is — that's a Data Fabric concept. The `postgresql` catalog exposes everything in PostgreSQL: clone tables, views, any other objects.
+
+The LDOS agent is configured to use `catalog="postgresql"`, so it sees whatever exists in PostgreSQL. The raw Iceberg tables (including `udm_field_notice`) are theoretically queryable via the `iceberg` catalog, but the agent isn't configured for that.
 
 ---
 
@@ -188,20 +194,6 @@ The LDOS agent is configured to use `catalog="postgresql"`, so it only sees data
 | `publish_user_id` | string | Publisher |
 | `inserted_at` / `updated_at` | timestamp | Record lifecycle |
 | `source_create_date` / `source_update_date` | timestamp | Source timestamps |
-
----
-
-## FN vs. PSIRT — What's the Difference?
-
-| | Field Notice (FN) | PSIRT Advisory |
-|---|---|---|
-| **Domain** | Non-security operational/reliability defects | Security vulnerabilities |
-| **Examples** | Hardware defect causing premature failure, firmware bug causing reboot, capacitor issue | Remote code execution, privilege escalation, DoS vulnerability |
-| **Identifier** | FN + number (e.g., FN74267) | cisco-sa-* (e.g., cisco-sa-iosxe-webui-privesc-j22SaA) |
-| **Severity model** | Impact rating | CVSS score + critical/high/medium/low |
-| **Response** | Hardware replacement (RMA), firmware upgrade, workaround | Patch, upgrade, mitigation |
-
-The LDOS agent has the same count-only limitation for both FN and PSIRT data.
 
 ---
 
