@@ -98,37 +98,77 @@ WHERE high_vulnerability_field_notice_count > 0
 
 A **consumption clone** is a read-optimized copy of an Iceberg datalake table, materialized into a different datastore (typically PostgreSQL) so downstream applications can query it efficiently. The clone is a **1:1 replica** of the Iceberg table — same columns, same rows. No transformation happens at the clone level.
 
-Transformations happen at two other layers:
+### How `cvi_assets_view_1__3__5` is actually built
 
-| Layer | Where | Example |
-|---|---|---|
-| **Before** clone | ETL pipeline (transform step) | Source data → cleaned/enriched → written to both Iceberg + PG |
-| **After** clone | SQL VIEW in PostgreSQL | Raw PG clone tables → JOINed/aggregated into `cvi_assets_view_1__3__5` |
+**Critical correction:** Despite the name, `cvi_assets_view_1__3__5` is **NOT a SQL VIEW** — it is a **PostgreSQL table** produced by an **ETL pipeline**. The ETL is defined entirely in Git:
 
-**The clone itself is always a 1:1 copy.** The Data Fabric API table metadata has no transformation configuration in the clone definition — just target type, name suffix, and resulting table name:
+- **Repo:** `CXEPI/cvi-success-track-config`
+- **Instance config:** `etl/cvi/common/cvi_assets_udm_cxc_instance.yaml` — defines source tables + destination
+- **Template (SQL logic):** `etl/cvi/common/cvi_assets_udm_template.yaml` (v2.0.19) — contains all transforms
 
-```json
-{
-  "consumptionTableName": "sec_hrd_rule_evaluation_summary_pg_0__0__11",
-  "tableNameSuffix": "pg",
-  "type": "postgresql"
-}
+The ETL pipeline reads **directly from Iceberg** (`SOURCE_CONNECTOR: iceberg:1.0.0`) — it does NOT use PG consumption clones as intermediates. It JOINs ~17 source tables, applies transforms, and writes the aggregated result to PostgreSQL (`SERVING_DESTINATION_CONNECTOR: pg-new:1.0.0`, save mode: `upsert`).
+
+This means:
+- **No PG clones are needed** — the ETL reads from Iceberg directly
+- The "view" in the name is vestigial — it was likely a VIEW originally but was refactored into an ETL-produced table
+- The FN count columns come from a specific transform step called `transform_advisory_counts`
+
+### The `transform_advisory_counts` step — where FN IDs become counts
+
+This is the exact SQL transform that aggregates individual FN records into per-device counts (from `cvi_assets_udm_template.yaml`, lines 482–550):
+
+```sql
+SELECT
+  telemetry_dimension_key,
+  SUM(CASE WHEN severity = 'critical' AND advisory_type = 1
+    THEN count ELSE 0 END) AS critical_vulnerability_field_notice_count,
+  SUM(CASE WHEN severity = 'high' AND advisory_type = 1
+    THEN count ELSE 0 END) AS high_vulnerability_field_notice_count,
+  -- ... (PSIRT counts use advisory_type = 2)
+FROM (
+  SELECT telemetry_dimension_key, severity, advisory_type,
+         vulnerability_status, count(*) AS count
+  FROM (
+    -- PSIRT subquery (advisory_type = 2)
+    SELECT p.telemetry_dimension_key, p.psirt_id AS advisory_id,
+           2 as advisory_type, LOWER(pb.severity_level_name) as severity,
+           LOWER(p.vulnerability_status) AS vulnerability_status
+    FROM {source_udm_psirt.data} p
+      JOIN {source_udm_psirt_bulletins.data} pb ON p.psirt_id = pb.psirt_id
+    WHERE LOWER(pb.severity_level_name) in ('critical', 'high')
+    UNION
+    -- *** FIELD NOTICE subquery (advisory_type = 1) ***
+    SELECT fn.telemetry_dimension_key, fn.field_notice_id AS advisory_id,
+           1 as advisory_type, LOWER(fnb.impact_rating) as severity,
+           LOWER(fn.vulnerability_status) AS vulnerability_status
+    FROM {source_udm_field_notice.data} fn
+      JOIN {source_udm_field_notice_bulletins.data} fnb
+        ON fn.field_notice_id = fnb.field_notice_id
+    WHERE LOWER(fnb.impact_rating) in ('critical', 'high')
+  )
+  GROUP BY telemetry_dimension_key, advisory_type, severity, vulnerability_status
+)
+GROUP BY telemetry_dimension_key
 ```
 
-The ETL pipeline writes to both Iceberg and PG targets in parallel as part of the same job — the clone isn't created *from* the Iceberg table via replication, but rather both are outputs of the same ETL pipeline. So the Iceberg table is the system of record directionally, but mechanically they are written alongside each other.
+This is where `field_notice_id` is discarded — the UNION subquery selects it, but the outer GROUP BY collapses it to counts per `telemetry_dimension_key` (device).
 
-### How does a SQL VIEW relate to clones?
+### ETL source tables (from instance YAML)
 
-A PostgreSQL VIEW is a stored query that runs against tables **within PostgreSQL**. It cannot reach outside the database into Iceberg. So:
-
-- If an Iceberg table has a PG consumption clone → a VIEW can reference that clone
-- If an Iceberg table has **no** PG consumption clone → a VIEW **cannot** reference it
-
-`cvi_assets_view_1__3__5` is a VIEW (not a Data Fabric-managed table — it doesn't appear in the `/tables` API). It sits on top of PG clone tables and performs JOINs + aggregations, which is where FN records get collapsed into per-asset counts.
+| Parameter | Source Table | Connector |
+|---|---|---|
+| `SOURCE_UDM_FIELD_NOTICE_TABLE` | `udm_field_notice_1__0__6` | `iceberg:1.0.0` |
+| `SOURCE_UDM_FIELD_NOTICE_BULLETINS_TABLE` | `udm_field_notice_bulletins_1__0__4` | `iceberg:1.0.0` |
+| `SOURCE_UDM_ASSETS_TABLE` | `udm_asset_1__0__10` | `iceberg:1.0.0` |
+| `SOURCE_UDM_ASSETS_TELEMETRY_TABLE` | `udm_asset_telemetry_1__0__9` | `iceberg:1.0.0` |
+| `SOURCE_UDM_PSIRT_TABLE` | `udm_psirt_1__0__7` | `iceberg:1.0.0` |
+| `SOURCE_UDM_PSIRT_BULLETINS_TABLE` | `udm_psirt_bulletins_1__0__4` | `iceberg:1.0.0` |
+| ... (17 source tables total) | | |
+| **SERVING_DESTINATION_TABLE** | **`cvi_assets_view_1__3__5`** | **`pg-new:1.0.0`** |
 
 ### Why is `cvi_assets_view_1__3__5` not in the Data Fabric catalog?
 
-Data Fabric manages **tables** (Iceberg + optional PG clones). Views are a layer above — typically created by the application team or a DBA via `CREATE VIEW`. The Data Fabric API tracks tables and their clones; VIEWs aren't in its scope.
+Because it's not a Data Fabric-managed table with Iceberg + optional clone. It's the **output** of a CX Platform ETL pipeline that writes directly to PostgreSQL. Data Fabric manages source Iceberg tables; this is a downstream serving table.
 
 ### Trino's role
 
@@ -228,18 +268,46 @@ Using the Data Fabric API (`/data-fabric/v1alpha/tables`), we enumerated all 506
 
 The data exists upstream. The technical path:
 
-1. **Data layer:** Either provision PG consumption clones for `udm_field_notice` + `udm_field_notice_bulletins`, or configure the agent to query Trino's `iceberg` catalog directly
-2. **View layer:** Create a joinable view or modify `cvi_assets_view_1__3__5` to include FN ID columns instead of (or alongside) counts
-3. **Agent schema:** Add `field_notice_id` (and optionally FN title, vulnerability_status) to the hardcoded `LDOS_COLUMN_METADATA` in `ldos_db_schema.py`
-4. **Guardrails:** Update `guardrail_prompts.py` to allow FN-specific queries
-5. **SQL examples:** Add vetted SQL pairs in `question_sql_pairs.py` for FN-specific patterns (e.g., `WHERE field_notice_id = 74267`)
+1. **ETL template change:** Modify `transform_advisory_counts` in `cvi_assets_udm_template.yaml` (and the CXC variant) to preserve `field_notice_id` alongside counts — or create a separate transform step that writes FN-per-device data to a second PG table
+2. **Agent schema:** Add `field_notice_id` (and optionally FN title, vulnerability_status) to the hardcoded `LDOS_COLUMN_METADATA` in `ldos_db_schema.py`
+3. **Guardrails:** Update `guardrail_prompts.py` to allow FN-specific queries
+4. **SQL examples:** Add vetted SQL pairs in `question_sql_pairs.py` for FN-specific patterns (e.g., `WHERE field_notice_id = 74267`)
 
-The constraint is not data availability — it's a materialization and view design choice.
+The constraint is not data availability — the ETL already reads `udm_field_notice` and `udm_field_notice_bulletins` from Iceberg. It's a **transform design choice** that discards `field_notice_id` during aggregation.
 
 ---
 
-## Open Questions
+## What We Now Know (Resolved Questions)
 
-1. **Who manages the `cvi_assets_view_1__3__5` view definition?** — Needed to understand how FN counts get aggregated and whether FN ID columns could be added
-2. **Why do all 88 CVI tables have empty consumption clones?** — Were clones provisioned in an older version and later removed? Is there a separate mechanism?
-3. **Could the agent query the Iceberg catalog directly?** — Would avoid needing PG clones, but would require changes to `trino_utils.py` (catalog config) and may have performance implications
+| Previous question | Answer |
+|---|---|
+| Who manages `cvi_assets_view_1__3__5`? | The `CXEPI/cvi-success-track-config` repo — ETL template at `etl/cvi/common/cvi_assets_udm_template.yaml` (v2.0.19) |
+| Is it a SQL VIEW? | **No.** It's a PostgreSQL **table** produced by an ETL pipeline |
+| How do FN counts reach the table? | The ETL's `transform_advisory_counts` step reads `udm_field_notice` + `udm_field_notice_bulletins` **directly from Iceberg**, JOINs on `field_notice_id`, counts per device, and the main transform JOINs counts into the output |
+| Why no PG clones for CVI tables? | PG clones aren't needed — the ETL reads from Iceberg directly. The final aggregated result is written to PG as the serving table |
+| Where is `field_notice_id` discarded? | In the `GROUP BY telemetry_dimension_key` of `transform_advisory_counts` — the UNION subquery selects `field_notice_id`, but the outer aggregation collapses to counts |
+
+## What We Still Need
+
+### 1. PM decision on FN-specific query support
+
+**What:** Confirmation on whether "Which assets are impacted by FN74267?" should be a supported capability. The Jira history (CXP-29812 "Remove Field Notice Support Again", CXP-29293 "Revert Field Notice Changes") shows this has been added and reverted multiple times.  
+**Why:** No point modifying the ETL if the PM/product decision is to keep FN queries out of scope.  
+**From whom:** The **LDOS AI Product Manager** — whoever owns the CXP-3358 epic and the FN-related Jiras.  
+**Ask:** "Is per-FN-ID asset impact querying in scope for LDOS AI? The data flows through the ETL already — the blocker is a transform design choice, not data availability."
+
+### 2. `CVI_TRINO_SERVICE_CREDENTIALS` for local Trino access
+
+**What:** The base64-encoded service credential that grants Trino query access to CVI tables via the `postgresql` catalog.  
+**Why:** Would let us verify the actual PG table columns against the hardcoded schema in `ldos_db_schema.py`.  
+**From whom:** A **LDOS AI team member** who has set up local Trino testing before. Set as env var `CVI_TRINO_SERVICE_CREDENTIALS` — IAM-provisioned, not in K8s secrets.  
+**Note:** This is nice-to-have now. We have the full ETL SQL, so we know exactly what columns the table has.
+
+### Summary table
+
+| # | What | From whom | Status |
+|---|---|---|---|
+| ~~1~~ | ~~View DDL~~ | ~~Data team~~ | **RESOLVED** — found in `cvi-success-track-config` ETL template |
+| ~~2~~ | ~~How FN counts reach the table~~ | ~~Data team~~ | **RESOLVED** — `transform_advisory_counts` reads directly from Iceberg |
+| 3 | PM decision on FN query scope | LDOS AI Product Manager | **OPEN** — decides if we proceed |
+| 4 | `CVI_TRINO_SERVICE_CREDENTIALS` | LDOS AI team member | **NICE-TO-HAVE** — for local verification |
