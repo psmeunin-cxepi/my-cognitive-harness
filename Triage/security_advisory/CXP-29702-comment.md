@@ -1,4 +1,6 @@
-> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+> **Agent:** Security Advisory
+> **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+> **Jira:** [CXP-29702](https://cisco-cxe.atlassian.net/browse/CXP-29702)
 
 # CXP-29702 — Implementation Plan Comment
 

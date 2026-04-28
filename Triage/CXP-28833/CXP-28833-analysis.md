@@ -1,3 +1,7 @@
+> **Agent:** _cross-agent (Semantic Router)_
+> **Repo:** _multiple_
+> **Jira:** [CXP-28833](https://cisco-cxe.atlassian.net/browse/CXP-28833)
+
 # CXP-28833 — Semantic Router Routing Inconsistency
 
 ## Scope and Limits — Page Context Is the Primary Routing Anchor

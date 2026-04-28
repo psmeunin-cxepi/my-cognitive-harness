@@ -1,3 +1,7 @@
+> **Agent:** Assessment Rating
+> **Repo:** [`CXEPI/cxp-health-risk-insights-ai`](https://github.com/CXEPI/cxp-health-risk-insights-ai)
+> **Jira:** [CXP-28833](https://cisco-cxe.atlassian.net/browse/CXP-28833)
+
 # Assessment Rating — Agent Card Audit
 
 **Source:** `CXEPI/cxp-health-risk-insights-ai` @ `a2a_server/config/agent_card.py` (commit `0377244`)

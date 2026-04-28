@@ -1,3 +1,7 @@
+> **Agent:** Config Best Practices
+> **Repo:** [`CXEPI/configbp-ai`](https://github.com/CXEPI/configbp-ai)
+> **Jira:** [CXP-28833](https://cisco-cxe.atlassian.net/browse/CXP-28833)
+
 # Configuration Best Practices — Agent Card Audit
 
 **Source:** `CXEPI/configbp-ai` @ `a2a_server/config/agent_card.py` (commit `c31e5fb`)

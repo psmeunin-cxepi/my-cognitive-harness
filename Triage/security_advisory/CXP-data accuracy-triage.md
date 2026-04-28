@@ -1,4 +1,6 @@
-> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+> **Agent:** Security Advisory
+> **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+> **Jira:** _to be created_
 
 # Triage: `impacted_assets_count` alias and Data Accuracy in Security Advisory Agent
 

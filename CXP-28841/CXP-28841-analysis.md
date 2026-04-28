@@ -1,6 +1,4 @@
-> **Agent:** Security Advisory
-> **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
-> **Jira:** [CXP-28841](https://cisco-cxe.atlassian.net/browse/CXP-28841)
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
 
 # CXP-28841 — Mistral Tool-Call Narration Bug: Analysis & Recommendations
 

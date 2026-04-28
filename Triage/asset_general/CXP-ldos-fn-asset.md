@@ -1,4 +1,6 @@
-> **Agent:** LDOS | **Repo:** [`CXEPI/cvi-ldos-ai`](https://github.com/CXEPI/cvi-ldos-ai)
+> **Agent:** Asset General
+> **Repo:** [`CXEPI/cvi-ldos-ai`](https://github.com/CXEPI/cvi-ldos-ai)
+> **Jira:** _to be created_
 
 # LDOS Agent: Field Notice Per-Asset Data Availability
 

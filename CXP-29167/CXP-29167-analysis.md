@@ -1,6 +1,4 @@
-> **Agent:** Security Advisory
-> **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
-> **Jira:** [CXP-29167](https://cisco-cxe.atlassian.net/browse/CXP-29167)
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
 
 # CXP-29167 — Executive Summary: Security Advisory Agent Failures
 

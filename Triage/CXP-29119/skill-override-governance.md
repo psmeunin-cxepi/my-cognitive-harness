@@ -1,3 +1,7 @@
+> **Agent:** _cross-agent (Semantic Router)_
+> **Repo:** _cvi_ai_shared_
+> **Jira:** [CXP-29119](https://cisco-cxe.atlassian.net/browse/CXP-29119)
+
 # Skill Override Layer — Governance Policy
 ## CXP-29119 | cvi_ai_shared PR #432
 **Status:** Draft v0.1 — April 19, 2026

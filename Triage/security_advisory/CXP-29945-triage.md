@@ -1,4 +1,6 @@
-> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+> **Agent:** Security Advisory
+> **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+> **Jira:** [CXP-29945](https://cisco-cxe.atlassian.net/browse/CXP-29945)
 
 # CXP-29945 Triage — Missing Quote Columns in Context Filter SQL Generation
 

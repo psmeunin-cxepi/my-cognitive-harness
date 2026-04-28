@@ -1,6 +1,4 @@
-> **Agent:** Security Advisory
-> **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
-> **Jira:** [CXP-29107](https://cisco-cxe.atlassian.net/browse/CXP-29107)
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
 
 # CXP-29107 — Analysis: Security Advisory Agent Query Failures
 

@@ -1,4 +1,6 @@
-> **Agent:** Security Hardening | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+> **Agent:** Security Hardening
+> **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+> **Jira:** _to be created_
 
 # Schema Quality Audit: `security_hardening` Domain
 
