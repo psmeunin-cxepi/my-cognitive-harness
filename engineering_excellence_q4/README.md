@@ -13,7 +13,7 @@
 
 A set of engineering-driven initiatives to standardize agent architecture, reduce per-agent divergence, and build shared infrastructure across the Cisco IQ domain agent portfolio.
 
-The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights (HRI)**, **Security Advisory**, **Security Hardening**, **LDOS**, and **Health Check**. Each was built independently, resulting in parallel implementations of the same concerns: RAG retrieval, MCP tooling, context handling, state management, and observability.
+The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights (HRI)**, **Security Advisory**, **Security Hardening**, and **LDOS**. Each was built independently, resulting in parallel implementations of the same concerns: RAG retrieval, MCP tooling, context handling, state management, and observability.
 
 ### Workstreams (to be discussed)
 

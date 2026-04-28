@@ -1,31 +1,60 @@
-# Context Switch Handling Across Cisco IQ Agents
+# Context Switch Handling — Cross-Agent Analysis
 
-How each Cisco IQ domain agent handles UI context switching — the ability to correctly scope LLM responses when a user navigates between pages or entities in the product UI.
-
-> **Validated**: All data sourced from local clones on `main` branch (April 23 2026), except Health Check (unverified).
+> **Workstream:** EE-6 — Agent Behavioural Spec
+>
+> **Date:** 2026-04-23
+>
+> **Status:** Research
+>
+> **Validated:** All data sourced from local clones on `main` branch (April 23 2026).
 
 ---
 
-## Cross-Agent Research Summary
+## 1. What This Is
 
-| Agent | Repo | Model | Extracts UI Filters | Resolves IDs → Names | Context Priority Rules | Disambiguation | Injection Method |
-|---|---|---|---|---|---|---|---|
-| **Config Best Practices** | `CXEPI/configbp-ai` | GPT-5.3-chat | Yes | Yes — MCP (rule, asset, insight) with caching | Partial — "prefer UI context when unambiguous" | Yes — 4-condition AND gate | `SystemMessage` (markdown block) |
-| **Health Risk Insights** | `CXEPI/cxp-health-risk-insights-ai` | Mistral | Yes | No — uses filter labels only | Yes — 13 enumerated rules | Via rules 4 + 9 (contradicting / different asset → ask) | `HumanMessage` prefix (bracket block) |
-| **Security Advisory** | `CXEPI/risk-app` | Mistral medium-2508 | Yes | No on main ¹ | No on main ¹ | No | `SYSTEM_PROMPT` suffix |
-| **Security Hardening** | `CXEPI/risk-app` | Mistral medium-2508 | Yes | No on main ¹ | No on main ¹ | No | `SYSTEM_PROMPT` suffix |
-| **LDOS** | `CXEPI/cvi-ldos-ai` | TBD | Yes (structured payload) | No | No UI context rules (7 conv-history rules) | No | Filters → API (not injected into LLM prompt) |
-| **Health Check** | `CXEPI/healthcheck-ai-poc` | TBD | Not verified | Not verified | Not verified | Not verified | Not verified |
+UI context switching is the ability for an agent to correctly scope its responses when a user navigates between pages or entities in the Cisco IQ product UI. When a user moves from viewing advisory A to advisory B and asks "tell me about this vulnerability", the agent must resolve "this vulnerability" to advisory B (the current page), not advisory A (from conversation history).
+
+Getting this wrong causes the most visible class of agent bugs — the user sees a confident answer about the wrong entity. This document analyses how each agent handles context switching: how UI filters are extracted, whether opaque IDs are resolved to human-readable names, what rules govern context priority, and how disambiguation is handled.
+
+---
+
+## 2. How It Works Today
+
+All agents receive UI context through the same frontend payload. The Cisco IQ frontend sends `context.filters` inside the A2A `message.metadata["filters"]` dict (see [ask-ai-payload.md](../ask-ai-payload.md) for the full payload spec). Each agent then handles these filters differently.
+
+**Common pipeline stages** (not all agents implement all stages):
+
+| Stage | Description |
+|-------|-------------|
+| **Extract** | Read raw filters from A2A message metadata |
+| **Normalize** | Map keys, allowlist, strip nulls |
+| **Resolve** | Convert opaque IDs (e.g., `checkId: 3065`) to human-readable names (e.g., `"CVE-2024-20356 — Cisco IMC Web UI Command Injection"`) |
+| **Build** | Render filters into a markdown/bracket block for LLM consumption |
+| **Inject** | Insert the rendered context into the message list (SystemMessage, HumanMessage prefix, or SYSTEM_PROMPT suffix) |
+
+**Feature matrix:**
+
+| Agent | Extracts UI Filters | Resolves IDs → Names | Context Priority Rules | Disambiguation | Injection Method |
+|---|---|---|---|---|---|
+| **Config Best Practices** | Yes | Yes — MCP (rule, asset, insight) with caching | Partial — "prefer UI context when unambiguous" | Yes — 4-condition AND gate | `SystemMessage` (markdown block) |
+| **Health Risk Insights** | Yes | No — uses filter labels only | Yes — 13 enumerated rules | Via rules 4 + 9 (contradicting / different asset → ask) | `HumanMessage` prefix (bracket block) |
+| **Security Advisory** | Yes | No on main ¹ | No on main ¹ | No | `SYSTEM_PROMPT` suffix |
+| **Security Hardening** | Yes | No on main ¹ | No on main ¹ | No | `SYSTEM_PROMPT` suffix |
+| **LDOS** | Yes (structured payload) | No | No UI context rules (7 conv-history rules) | No | Filters → API (not injected into LLM prompt) |
 
 ¹ PR #1308 (CXP-29702, open) adds ID resolution + 7 enumerated context rules for both Security Advisory and Hardening — see agent sections below.
 
 ---
 
-## Config Best Practices (CBP)
+## 3. Implementation Analysis
+
+### 3.1 Config Best Practices
+
+> **Repo:** `CXEPI/configbp-ai` · **Model:** GPT-5.3-chat
 
 **Reference implementation** — most mature context pipeline across all agents.
 
-### Architecture
+#### Architecture
 
 5-step pipeline: Extract → Forward → Accept → Build → Inject.
 
@@ -35,48 +64,35 @@ How each Cisco IQ domain agent handles UI context switching — the ability to c
 4. **Build** — `agent/services/ui_context_builder.py` (517 lines): allowlist ~50 filter keys, resolve opaque IDs via MCP, render to markdown
 5. **Inject** — `_build_messages()` prepends the rendered context as the first `SystemMessage`
 
-### ID Resolution
+#### Key Behaviors
 
-Resolves `ruleId`, `assetId`, and `insightId` via MCP tool `resolve_filter_context`:
-- Rules: cached indefinitely (shared across tenants, ~500 rules)
-- Assets: cached 24h, tenant-scoped via JWT `initiator_account_id`, max 10k entries
-- Insights: cached indefinitely
-- All resolutions run in parallel via `asyncio.gather()`
+| Behavior | Implementation |
+|----------|----------------|
+| **ID Resolution** | Resolves `ruleId`, `assetId`, `insightId` via MCP tool `resolve_filter_context`. Rules cached indefinitely (~500 shared rules), assets cached 24h (tenant-scoped via JWT `initiator_account_id`, max 10k entries), insights cached indefinitely. All resolutions run in parallel via `asyncio.gather()`. |
+| **Context Priority** | No enumerated rules. Relies on header instruction: *"Prefer UI context values when the user's intent is unambiguous"* and footer: *"Do not expose internal identifiers (rule IDs, asset keys, source IDs)"*. |
+| **Disambiguation** | `_DISAMBIGUATION_RULE` — formal 4-condition AND gate, appended when a resolved entity exists AND conversation history is present: (1) User's current message does not explicitly name a rule/asset/insight; (2) UI Context names entity `E_ui` of some type; (3) Most recent same-type entity in history is `E_hist`, and `E_hist ≠ E_ui`; (4) Answering requires that entity. All 4 true → ask one clarification question naming both candidates by display name. No history → rule omitted (saves tokens). |
 
-### Context Priority
+#### Key Files
 
-No enumerated rules in the system prompt. Instead relies on:
-- Header instruction: *"Prefer UI context values when the user's intent is unambiguous"*
-- Footer: *"Do not expose internal identifiers (rule IDs, asset keys, source IDs)"*
+| File | Purpose |
+|------|----------|
+| `agent/services/ui_context_builder.py` | `build_ui_context()`, `ALLOWED_FILTERS`, `_DISAMBIGUATION_RULE`, resolution helpers |
+| `agent/api/server.py` | `ChatRequest`, `_build_messages()` |
 
-### Disambiguation
-
-`_DISAMBIGUATION_RULE` — a formal 4-condition AND gate appended when a resolved entity exists AND conversation history is present:
-
-1. User's current message does not explicitly name a rule, asset, or insight
-2. UI Context names entity `E_ui` of some type (rule / asset / insight)
-3. Most recent same-type entity in Conversation History is `E_hist`, and `E_hist ≠ E_ui`
-4. Answering the question requires that entity
-
-When all 4 are true → ask one clarification question naming both candidates by display name. When no history exists, the rule is omitted entirely (saves tokens).
-
-### Key Files
-
-- [agent/services/ui_context_builder.py](https://github.com/CXEPI/configbp-ai) — `build_ui_context()`, `ALLOWED_FILTERS`, `_DISAMBIGUATION_RULE`, resolution helpers
-- [agent/api/server.py](https://github.com/CXEPI/configbp-ai) — `ChatRequest`, `_build_messages()`
-
-### Known Gaps
+#### Known Gaps
 
 - No enumerated context priority rules (e.g., "portfolio-wide questions ignore context")
 - Disambiguation rule uses abstract variable notation (`E_ui`, `E_hist`) — works for GPT-5.3 but may not generalize to weaker models
 
 ---
 
-## Health Risk Insights (HRI)
+### 3.2 Health Risk Insights
+
+> **Repo:** `CXEPI/cxp-health-risk-insights-ai` · **Model:** Mistral
 
 **Strongest prompt-level rules** — 13 enumerated rules covering all context switching scenarios.
 
-### Architecture
+#### Architecture
 
 3-step pipeline: Extract → Normalize → Inject (bracket prefix).
 
@@ -84,13 +100,15 @@ When all 4 are true → ask one clarification question naming both candidates by
 2. **Normalize** — `_normalize_upstream_filters()` maps 13 camelCase keys to snake_case via `UPSTREAM_TO_INTERNAL_FILTER_MAP`
 3. **Inject** — `_build_bracket_context()` formats as `[The user is currently viewing assets with the following filters: Assessment Rating: High, Medium | Product Family: ...]` and prepends to the user's prompt (HumanMessage)
 
-### ID Resolution
+#### Key Behaviors
 
-None — filters are injected as labels (e.g., "Product Family: Cisco Catalyst 9300 Series Switches"), not resolved from opaque IDs. The `asset_id` key is explicitly skipped in bracket context building.
+| Behavior | Implementation |
+|----------|----------------|
+| **ID Resolution** | None — filters are injected as labels (e.g., "Product Family: Cisco Catalyst 9300 Series Switches"), not resolved from opaque IDs. The `asset_id` key is explicitly skipped in bracket context building. |
+| **Context Priority** | 13 enumerated rules in `SHARED_PROMPT_INSTRUCTIONS` under `# ASSET PAGE CONTEXT` (see table below). |
+| **Disambiguation** | No formal rule — relies on rule 4 (contradicting → ask) and rule 9 (different asset → ask), which are less rigorous than CBP's AND gate. |
 
-### Context Priority Rules
-
-13 enumerated rules in `SHARED_PROMPT_INSTRUCTIONS` under `# ASSET PAGE CONTEXT`:
+**Context priority rules (13):**
 
 | # | Rule | Behavior |
 |---|---|---|
@@ -108,12 +126,14 @@ None — filters are injected as labels (e.g., "Product Family: Cisco Catalyst 9
 | 12 | Date filters not supported | Inform user |
 | 13 | No bracket context + direct query | Answer directly without clarification |
 
-### Key Files
+#### Key Files
 
-- [a2a_server/handlers/skill_handlers.py](https://github.com/CXEPI/cxp-health-risk-insights-ai) — `_extract_filters()`, `_normalize_upstream_filters()`, `_build_bracket_context()`, `UPSTREAM_TO_INTERNAL_FILTER_MAP`
-- [agent/core/prompt.py](https://github.com/CXEPI/cxp-health-risk-insights-ai) — `SHARED_PROMPT_INSTRUCTIONS` (13 rules), `SHARED_GUARDRAIL_INSTRUCTIONS`, `fetch_system_prompt()`
+| File | Purpose |
+|------|---------|
+| `a2a_server/handlers/skill_handlers.py` | `_extract_filters()`, `_normalize_upstream_filters()`, `_build_bracket_context()`, `UPSTREAM_TO_INTERNAL_FILTER_MAP` |
+| `agent/core/prompt.py` | `SHARED_PROMPT_INSTRUCTIONS` (13 rules), `SHARED_GUARDRAIL_INSTRUCTIONS`, `fetch_system_prompt()` |
 
-### Known Gaps
+#### Known Gaps
 
 - No opaque ID resolution — LLM sees filter labels, not resolved entity names
 - Bracket context is prepended to HumanMessage (not SystemMessage) — may have lower precedence for some models
@@ -121,38 +141,42 @@ None — filters are injected as labels (e.g., "Product Family: Cisco Catalyst 9
 
 ---
 
-## Security Advisory
+### 3.3 Security Advisory
+
+> **Repo:** `CXEPI/risk-app` · **Model:** Mistral medium-2508
 
 **Basic filter extraction on main; full context handling in open PR #1308.**
 
-### Architecture (on main)
+#### Architecture (on main)
 
 2-step pipeline: Extract → Inject (raw).
 
 1. **Extract** — `_format_context_filter()` in `security_assessment_agent_impl.py` reads `context_filter` and `context` dicts, skips `context_id`, filters the nested `filters` dict to only `checkId` and `assetId`
 2. **Inject** — Raw filter summary appended to `SYSTEM_PROMPT` with preamble *"The user is currently viewing a page with the following active context filters. Apply these as default query filters unless the user explicitly asks otherwise"*
 
-### ID Resolution (on main)
+#### Key Behaviors (on main)
 
-None — raw `checkId` (numeric psirt_id) passed to LLM. The `<context_filter_mapping>` section in the system prompt explains that `checkId` maps to `psirts.psirt_id` / `bulletins.psirt_id`, but the LLM must interpret the raw integer.
+| Behavior | Implementation |
+|----------|----------------|
+| **ID Resolution** | None — raw `checkId` (numeric psirt_id) passed to LLM. `<context_filter_mapping>` in system prompt explains that `checkId` maps to `psirts.psirt_id` / `bulletins.psirt_id`, but the LLM must interpret the raw integer. |
+| **Context Priority** | Tool-selection rule 1 instructs LLM to use SQL data-query flow when runtime context includes `checkId`/`assetId` and user asks a context-referential question. No enumerated rules for portfolio-wide, context vs. history, or named-entity override. |
+| **Disambiguation** | None. |
 
-### Context Priority Rules (on main)
-
-Tool-selection rule 1 instructs the LLM to use SQL data-query flow first when runtime context includes `checkId`/`assetId` and the user asks a context-referential question. No enumerated rules for portfolio-wide questions, context vs. history, or named-entity override.
-
-### Pending: PR #1308 (CXP-29702)
+#### Pending: PR #1308 (CXP-29702)
 
 Adds two fixes (not yet merged):
 
 - **Fix A**: Resolves `checkId` → `headline_name` + `advisory_id` via Trino query against `bulletins` table. Injects `"The user is currently viewing advisory: "<name>" (psirt_id: X). When the user says "this vulnerability" or "this advisory", they mean this one."` ahead of raw context.
 - **Fix B**: `<advisory_context_rules>` section with 7 enumerated rules: default scope, detail page deictics, aligned questions, user-names-different-advisory override, portfolio-wide trigger phrases, context vs. history precedence, never-expose-internals.
 
-### Key Files
+#### Key Files
 
-- [security-advisory-ai-api/src/openapi_server/impl/security_assessment_agent_impl.py](https://github.com/CXEPI/risk-app) — `_format_context_filter()`, `_resolve_sql_aliases()`, prompt assembly
-- [security-advisory-ai-api/src/openapi_server/prompts/security_assessment_v1_mistral.py](https://github.com/CXEPI/risk-app) — `SYSTEM_PROMPT` with `<context_filter_mapping>`, `<instructions>`
+| File | Purpose |
+|------|---------|
+| `security-advisory-ai-api/src/openapi_server/impl/security_assessment_agent_impl.py` | `_format_context_filter()`, `_resolve_sql_aliases()`, prompt assembly |
+| `security-advisory-ai-api/src/openapi_server/prompts/security_assessment_v1_mistral.py` | `SYSTEM_PROMPT` with `<context_filter_mapping>`, `<instructions>` |
 
-### Known Gaps (on main)
+#### Known Gaps (on main)
 
 - No ID resolution → LLM sees raw `checkId: 3065` instead of advisory name
 - No context priority rules → "this vulnerability" resolved from conversation history instead of current page context
@@ -160,35 +184,41 @@ Adds two fixes (not yet merged):
 
 ---
 
-## Security Hardening
+### 3.4 Security Hardening
+
+> **Repo:** `CXEPI/risk-app` · **Model:** Mistral medium-2508
 
 **Same architecture as Security Advisory, same gaps, same pending PR.**
 
-### Architecture (on main)
+#### Architecture (on main)
 
 Identical pattern to Security Advisory. `_format_context_filter()` extracts filters, raw summary appended to `SYSTEM_PROMPT`. `<context_filter_mapping>` maps `ruleId` → `finding.source_id`.
 
-### Pending: PR #1308 (CXP-29702)
+#### Pending: PR #1308 (CXP-29702)
 
 - **Fix A**: Resolves `ruleId` → `rule_name` via Trino query against `finding` table
 - **Fix B**: `<rule_context_rules>` section with 7 enumerated rules (analogous to Advisory's `<advisory_context_rules>`)
 
-### Key Files
+#### Key Files
 
-- [security-hardening-ai-api/src/openapi_server/impl/security_assessment_agent_impl.py](https://github.com/CXEPI/risk-app) — same pattern as Advisory
-- [security-hardening-ai-api/src/openapi_server/prompts/security_assessment_v1_mistral.py](https://github.com/CXEPI/risk-app) — `SYSTEM_PROMPT` with `<context_filter_mapping>` for `ruleId`
+| File | Purpose |
+|------|---------|
+| `security-hardening-ai-api/src/openapi_server/impl/security_assessment_agent_impl.py` | Same pattern as Advisory |
+| `security-hardening-ai-api/src/openapi_server/prompts/security_assessment_v1_mistral.py` | `SYSTEM_PROMPT` with `<context_filter_mapping>` for `ruleId` |
 
-### Known Gaps (on main)
+#### Known Gaps (on main)
 
 Same as Security Advisory — no ID resolution, no context priority rules. Susceptible to the same context switch failure pattern.
 
 ---
 
-## LDOS
+### 3.5 LDOS
+
+> **Repo:** `CXEPI/cvi-ldos-ai`
 
 **Fundamentally different architecture** — text-to-SQL pipeline, not MCP tool-calling agent.
 
-### Architecture
+#### Architecture
 
 LDOS does not inject UI context into the LLM prompt. Instead:
 
@@ -200,9 +230,17 @@ LDOS does not inject UI context into the LLM prompt. Instead:
 
 The LLM's system prompt (`ldos_readable_answer_system_prompt`) is purely for converting SQL results to natural language — it contains no context handling instructions.
 
-### Conversation History Handling
+#### Key Behaviors
 
-LDOS has a sophisticated conversation history resolver (`CONVERSATION_HISTORY_CONTEXT_SYSTEM_PROMPT`) with 7 rules:
+| Behavior | Implementation |
+|----------|----------------|
+| **ID Resolution** | None. |
+| **Context Priority** | No UI context rules. 7 conversation history rules (see below) handle multi-turn follow-ups but not page navigation. |
+| **Disambiguation** | None. |
+
+**Conversation history rules (7):**
+
+LDOS has a sophisticated conversation history resolver (`CONVERSATION_HISTORY_CONTEXT_SYSTEM_PROMPT`):
 
 | # | Rule | Behavior |
 |---|---|---|
@@ -216,13 +254,15 @@ LDOS has a sophisticated conversation history resolver (`CONVERSATION_HISTORY_CO
 
 These rules handle multi-turn follow-ups but do not address UI page context switching — if the user navigates to a different asset page, the conversation history still references the previous asset.
 
-### Key Files
+#### Key Files
 
-- [a2a/server.py](https://github.com/CXEPI/cvi-ldos-ai) — `ask_ldos_handler()`, `_parse_request_node()`, `_extract_sav_id_into_filters_if_missing()`
-- [common/context_handler_service.py](https://github.com/CXEPI/cvi-ldos-ai) — `ContextHandler` class, `extract_filter_from_request()`, SAV ID validation
-- [common/langgraph_utils/prompts.py](https://github.com/CXEPI/cvi-ldos-ai) — `CONVERSATION_HISTORY_CONTEXT_SYSTEM_PROMPT` (7 rules), `ldos_readable_answer_system_prompt`
+| File | Purpose |
+|------|---------|
+| `a2a/server.py` | `ask_ldos_handler()`, `_parse_request_node()`, `_extract_sav_id_into_filters_if_missing()` |
+| `common/context_handler_service.py` | `ContextHandler` class, `extract_filter_from_request()`, SAV ID validation |
+| `common/langgraph_utils/prompts.py` | `CONVERSATION_HISTORY_CONTEXT_SYSTEM_PROMPT` (7 rules), `ldos_readable_answer_system_prompt` |
 
-### Known Gaps
+#### Known Gaps
 
 - No UI context injection into LLM prompt — filters go to the API/SQL layer, not to the LLM
 - LLM has no awareness of what page the user is viewing
@@ -231,17 +271,11 @@ These rules handle multi-turn follow-ups but do not address UI page context swit
 
 ---
 
-## Health Check
+## 4. Cross-Agent Comparison
 
-**Not Verified** — PoC status, no local clone available, GitHub MCP tools disabled during validation.
+### 4.1 Feature Matrix
 
-Based on the repo structure (`hc_agent.py`, `hcmcp/`, `hc_api.py`, `intents/`), this is a lightweight PoC that likely does not implement full UI context handling. Needs direct repo inspection to confirm.
-
----
-
-## Comparative Observations
-
-### Context Pipeline Maturity
+**Context pipeline maturity:**
 
 ```
 CBP ████████████████████ Full (extract → resolve → build → inject + disambiguation)
@@ -249,22 +283,30 @@ HRI ██████████████████   Strong (extract →
 SA  ██████████           Basic on main / Full in PR #1308
 SH  ██████████           Basic on main / Full in PR #1308
 LDOS ████████            Filters to API only; no LLM context awareness
-HC  ██                   Unverified (PoC)
 ```
 
-### Key Architectural Differences
+**Architecture comparison:**
 
-| Aspect | CBP | HRI | Security (PR) | LDOS |
-|---|---|---|---|---|
+| Aspect | ConfigBP | HRI | Risk-App (PR) | LDOS |
+|--------|----------|-----|---------------|------|
 | **Injection target** | SystemMessage | HumanMessage prefix | SYSTEM_PROMPT suffix | API filters (not LLM) |
 | **ID resolution** | MCP tool, cached | None (labels) | Trino SQL query | N/A |
 | **Disambiguation** | Formal AND gate | Enumerated ask-rules | None | N/A |
 | **Context vs. history** | Implicit (UI preferred) | Rule 10 (explicit) | Rule 6 in PR (explicit) | No rule |
 | **Portfolio-wide handling** | Not addressed | Rule 7 (explicit triggers) | Rule 5 in PR (explicit triggers) | N/A |
 
-### Recommendations
+### 4.2 Observations
+
+1. **CBP is the reference implementation** for context switching — it has the most complete pipeline (5 stages) and the most rigorous disambiguation (formal AND gate). However, it lacks enumerated context priority rules.
+2. **HRI has the strongest prompt-level rules** — 13 enumerated rules cover every scenario (portfolio-wide, contradicting filters, context vs. history). But it lacks opaque ID resolution.
+3. **Security Advisory / Hardening are the weakest on main** — raw IDs, no context priority rules, no disambiguation. PR #1308 closes the gap significantly with both programmatic resolution and 7 enumerated rules.
+4. **LDOS is architecturally different** — filters feed the SQL pipeline, not the LLM. The LLM has no awareness of what page the user is viewing, making UI context switches invisible to it.
+5. **No agent has all best practices** — the ideal implementation would combine CBP's ID resolution + HRI's enumerated rules + CBP's formal disambiguation.
+
+---
+
+## 5. Recommendations
 
 1. **Security Advisory / Hardening**: Merge PR #1308 — it addresses the root cause of CXP-29702 with both programmatic resolution (Fix A) and prompt rules (Fix B)
 2. **LDOS**: Consider injecting a bracket context block (similar to HRI) into the conversation history resolution prompt when UI filters are present — this would let the LLM know what asset the user is currently viewing
 3. **CBP**: Consider adding enumerated context priority rules (like HRI's 13 rules) to handle portfolio-wide questions and explicit context vs. history precedence — the disambiguation rule alone doesn't cover these cases
-4. **Health Check**: Verify context handling when the PoC matures toward production
