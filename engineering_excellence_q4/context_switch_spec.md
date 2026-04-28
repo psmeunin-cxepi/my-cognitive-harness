@@ -309,6 +309,42 @@ LDOS ████████            Filters to API only; no LLM context awa
 
 ## 5. Recommendations
 
+### 5.1 Per-Agent
+
 1. **Security Advisory / Hardening**: Merge PR #1308 — it addresses the root cause of CXP-29702 with both programmatic resolution (Fix A) and prompt rules (Fix B)
 2. **LDOS**: Consider injecting a bracket context block (similar to HRI) into the conversation history resolution prompt when UI filters are present — this would let the LLM know what asset the user is currently viewing
 3. **CBP**: Consider adding enumerated context priority rules (like HRI's 13 rules) to handle portfolio-wide questions and explicit context vs. history precedence — the disambiguation rule alone doesn't cover these cases
+
+### 5.2 Programmatic Context Switch Detection
+
+**Proposal:** Detect context switches programmatically *before* any LLM/agent invocation, rather than relying on the LLM to infer the switch from prompt rules.
+
+**How it works:** Compare `context.filters` from the current request with the filters stored from the previous turn in conversation history. If entity-identifying keys changed (`checkId`, `ruleId`, `assetId`, `serialNumber`, etc.) → context switch detected. If first message or same filters → no switch. This is a pure dict diff — no LLM call needed.
+
+```python
+# Proposed shared utility (location TBD)
+def detect_context_switch(
+    current_filters: dict,
+    previous_filters: dict | None,
+) -> ContextSwitchResult:
+    """Returns: no_switch | entity_changed | filters_narrowed | filters_cleared"""
+```
+
+**Where to put it:** TBD — to be discussed with the team. Every agent already extracts filters from the A2A payload. The missing piece is persisting the previous turn's filters — most agents already have conversation history, so this means attaching filter metadata to it.
+
+**Primary benefit — lighter system prompts:** The context switch detection result drives conditional prompt injection. Only include context switch rules when a switch is actually detected. This reduces system prompt weight for the majority of turns (no switch).
+
+**Prompt layering model:**
+
+| Layer | When injected | Content |
+|-------|--------------|---------|
+| **Always present** (lightweight) | Every turn | "Use current UI context as default scope. Don't expose filter internals." |
+| **Context switch** | Only when `entity_changed` detected | "Context has changed from [old entity] to [new entity]. The user is now viewing [new entity]. Disregard references to [old entity] in conversation history unless the user explicitly refers back to it." |
+| **Disambiguation** (CBP-style) | When history exists | Formal AND gate for conversational entity switches where the user names a different entity without changing pages. |
+
+**Additional benefits:**
+
+1. **Conversation history pruning** — optionally drop or tag stale history turns that reference the old entity, preventing the LLM from carrying forward outdated context
+2. **Metrics / observability** — log context switch events to LangSmith (how often do users switch mid-conversation? does switching correlate with lower quality answers?)
+
+**Caveat:** Programmatic detection only catches UI-level switches (filter changes from page navigation). It does not catch *conversational* entity switches where the user names a different entity without changing pages ("what about the 9400 instead?"). CBP's disambiguation rule handles that case and must remain in the prompt as the "disambiguation" layer above.
