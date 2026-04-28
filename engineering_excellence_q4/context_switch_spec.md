@@ -6,6 +6,8 @@
 >
 > **Status:** Research
 >
+> **Owner(s):** Philip Smeuninx
+>
 > **Validated:** All data sourced from local clones on `main` branch (April 23 2026).
 
 ---

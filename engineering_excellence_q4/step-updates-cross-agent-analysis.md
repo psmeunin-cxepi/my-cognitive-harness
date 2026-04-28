@@ -5,6 +5,8 @@
 > **Date:** 2026-04-28
 >
 > **Status:** Research
+>
+> **Owner(s):** Philip Smeuninx
 
 ---
 
