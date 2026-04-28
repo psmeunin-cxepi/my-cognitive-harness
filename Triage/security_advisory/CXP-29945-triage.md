@@ -1,3 +1,5 @@
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+
 # CXP-29945 Triage — Missing Quote Columns in Context Filter SQL Generation
 
 ## Summary

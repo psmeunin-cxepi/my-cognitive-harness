@@ -1,3 +1,5 @@
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+
 # CXP-28841 — Mistral Tool-Call Narration Bug: Analysis & Recommendations
 
 ## Summary

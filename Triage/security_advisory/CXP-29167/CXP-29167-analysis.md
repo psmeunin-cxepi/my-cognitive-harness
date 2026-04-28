@@ -1,3 +1,5 @@
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+
 # CXP-29167 — Executive Summary: Security Advisory Agent Failures
 
 **Date:** 2026-04-20  

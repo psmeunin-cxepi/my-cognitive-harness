@@ -1,3 +1,5 @@
+> **Agent:** Security Hardening | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+
 # Schema Quality Audit: `security_hardening` Domain
 
 **Source file:** `text2sql_mcp/schema_hardening.py` (CXEPI/risk-app, main branch)  

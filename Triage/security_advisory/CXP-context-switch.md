@@ -1,3 +1,5 @@
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+
 # Triage: `checkId` Context Switch — Agent Answers About Wrong Vulnerability
 
 **Trace ID:** `019db4bd-f9fd-7530-ba97-5d9ea0a775a7`  

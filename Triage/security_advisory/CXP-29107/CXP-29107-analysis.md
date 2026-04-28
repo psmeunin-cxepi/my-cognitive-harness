@@ -1,3 +1,5 @@
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+
 # CXP-29107 — Analysis: Security Advisory Agent Query Failures
 
 > **Trace**: `019d9ff7-20f8-78a1-a49d-38d10218491c` (cx-iq-nprd · DEV--Security)  

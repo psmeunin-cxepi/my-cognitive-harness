@@ -1,3 +1,5 @@
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+
 # Triage: `impacted_assets_count` alias and Data Accuracy in Security Advisory Agent
 
 **Trace ID:** `019db47d-5e25-7a40-8e88-887392a1db1b`  

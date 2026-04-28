@@ -1,3 +1,5 @@
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+
 # Schema Quality Audit: `security_advisory` Domain
 
 **Source file:** `text2sql_mcp/schema_advisory.py` (CXEPI/risk-app, main branch)  

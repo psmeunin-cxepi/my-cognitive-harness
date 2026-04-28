@@ -1,3 +1,5 @@
+> **Agent:** Security Advisory | **Repo:** [`CXEPI/risk-app`](https://github.com/CXEPI/risk-app)
+
 # CXP — RAG Collection Name Error + Trino Generic Error
 
 ## Trace
