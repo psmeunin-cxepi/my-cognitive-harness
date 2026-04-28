@@ -20,10 +20,10 @@ The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights
 | Workstream | Summary |
 |---|---|
 | **EE-1 — Agent Architecture Patterns** | Define and document standard LangGraph patterns (node structure, state schema, error handling) for all agents |
-| **EE-2 — Common RAG Strategy** | Converge on a single ingestion pipeline and standardized retrieval options per document category |
+| **EE-2 — Common RAG Integration** | Converge on a single RAG integration pattern (shared client, ingestion pipeline, and standardized retrieval options per document category) used by all agents |
 | **EE-3 — Common MCP Server** | Extract shared MCP tools (data access, Trino queries, ID resolution) into a single shared server |
 | **EE-4 — LangSmith Platform Migration** | Adopt LangSmith as the unified platform for agent deployment, tracing, and evaluation |
-| **EE-5 — GraphState & Checkpointer** | Implement consistent `GraphState` schemas and LangGraph checkpointer patterns across all agents |
+| **EE-5 — Agent Memory** | Define a consistent agent memory model across short-term (in-thread `GraphState` + checkpointer) and long-term (cross-thread, persisted) memory |
 | **EE-6 — Agent Behavioural Spec** | Define and maintain normative behavioral specifications (RFCs) for all agents; establish compliance tooling and eval coverage |
 ...
 
@@ -78,10 +78,10 @@ Q4 is a window to invest in the platform before the next major feature cycle. St
 | Workstream | Directory | Lead | Status |
 |---|---|---|---|
 | EE-1 Agent Architecture Patterns | `ee1_agent_patterns/` | TBD | Not started |
-| EE-2 Common RAG Strategy | `ee2_rag_strategy/` | TBD | Not started |
+| EE-2 Common RAG Integration | `ee2_rag_integration/` | TBD | Not started |
 | EE-3 Common MCP Server | `ee3_common_mcp/` | TBD | Not started |
 | EE-4 LangSmith Platform Migration | `ee4_langsmith_migration/` | TBD | Not started |
-| EE-5 GraphState & Checkpointer | `ee5_graph_state/` | TBD | Not started |
+| EE-5 Agent Memory | `ee5_agent_memory/` | TBD | Not started |
 | EE-6 Agent Behavioural Spec | `ee6_agent_behaviour/` | TBD | Not started |
 ....
 
@@ -91,3 +91,5 @@ Q4 is a window to invest in the platform before the next major feature cycle. St
 
 - [RFC-001: Context Switch Behavior Specification](../agent_behavioural_spec/rfc_context_switch.md)
 - [Cross-Agent Context Handling Landscape](../agent_behavioural_spec/context_switch_spec.md)
+- [Step Updates — Cross-Agent Analysis](step-updates-cross-agent-analysis.md)
+- [Conversation History — Cross-Agent Analysis](conversation-history-cross-agent-analysis.md)
