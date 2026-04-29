@@ -33,7 +33,7 @@ Without intervention, the divergence compounds:
 
 ## What
 
-Q4 is a window to invest in the platform before the next major feature cycle. Five workstreams targeting the key areas where the Cisco IQ domain agents have diverged: graph architecture, RAG retrieval, data access, deployment, and behavioral standards. Each workstream will produce a landscape analysis, a target specification, and an (incremental) migration path.
+Five workstreams targeting the key areas where the Cisco IQ domain agents have diverged: graph architecture, RAG retrieval, data access, deployment, and behavioral standards. Each workstream will produce a landscape analysis, a target specification, and an (incremental) migration path.
 
 The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights (HRI)**, **Security Advisory**, **Security Hardening**, and **LDOS**.
 
@@ -57,12 +57,13 @@ The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights
 - The **Engineering Excellence leads** are accountable for the initiative and its targets. They hold ultimate authority and decision rights across all workstreams
 - Each workstream has a designated lead who is responsible for delivery and a target completion date within Q4
 - Workstream leads are the gatekeepers for new requirements — they decide whether a proposal is accepted and whether it is scoped for Q4 or deferred
-- New requirements are collected by the workstream leads with input from their respective agent teams. Any team member can propose work, but acceptance and prioritisation are decided jointly by the workstream lead and the Engineering Excellence leads
+- New requirements are collected by the workstream leads with input from their respective agent teams. Any team member can propose work, and PM-driven needs are a valid input. Acceptance and prioritisation are decided jointly by the workstream lead and the Engineering Excellence leads
+- **PM-driven work that touches a workstream's domain** is labelled with the relevant workstream label for visibility and coordination, but lives under its own PM-owned EPIC — not under the EE EPIC. PM owns the priority and scope (*what* and *when*); the workstream lead owns the technical approach (*how*), ensuring it aligns with the workstream's standards
 - **PM consultation required** when changes under any workstream have external impact on agent behaviour or user-facing responses (e.g., answer quality, data exposure, conversational flow). Such changes must be reviewed with Product Management before rollout
 
 ### Tracking
 
-All work is tracked under EPIC [CXP-29377](https://cisco-cxe.atlassian.net/browse/CXP-29377). The board uses swimlanes per workstream, driven by JIRA labels.
+Engineering-driven work is tracked under EPIC [CXP-29377](https://cisco-cxe.atlassian.net/browse/CXP-29377). PM-driven tickets are **not** linked to this EPIC — they remain under their own PM-owned initiative. The board uses swimlanes per workstream, driven by JIRA labels.
 
 | Label | Scope |
 |---|---|
@@ -73,7 +74,7 @@ All work is tracked under EPIC [CXP-29377](https://cisco-cxe.atlassian.net/brows
 | `ee4-depl-obs` | EE-4 — Deployment & Observability Platform |
 | `ee5-agent-spec` | EE-5 — Agent Behavioural Spec |
 
-Every ticket must carry the general label **and** its workstream label.
+Every EE ticket must carry the general label **and** its workstream label. PM-driven tickets that touch a workstream's domain carry only the workstream label (e.g., `ee1-agent-arch`) — this gives the workstream lead visibility without pulling the ticket into the EE EPIC.
 
 ### Approach
 
