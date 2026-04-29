@@ -16,8 +16,8 @@
 Each Cisco IQ domain agent was built to solve a specific product problem — context was team-local, timelines were independent, and cross-agent standardization was not prioritized. The result is:
 
 - **Duplicated implementations** of retrieval, MCP tooling, context parsing, and prompt patterns — multiplying maintenance cost for every change
-- **Behavioral drift** — agents handle the same situations (context switching, deictic resolution, portfolio-wide queries) in different and sometimes incorrect ways, as documented in [RFC-001](../agent_behavioural_spec/rfc_context_switch.md)
-- **No shared behavioral contract** — there is no normative specification of what agents are required to do, making it impossible to audit compliance, write cross-agent evals, or onboard agents to a shared standard
+- **Behavioral drift** — agents handle the same situations (context switching, deictic resolution, portfolio-wide queries) in different and sometimes incorrect ways
+- **No shared behavioral contract** — there is no specification of how agents should behave in specific scenarios, how they should respond to users, or what guardrails they must enforce — making it difficult to audit compliance, write cross-agent evals, or onboard agents to a shared standard
 - **Steep onboarding cost** — a developer moving between agents must re-learn each codebase's bespoke patterns
 
 ### The Complication
@@ -58,7 +58,6 @@ The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights
 - Each workstream has a designated lead who is responsible for delivery and a target completion date within Q4
 - Workstream leads are the gatekeepers for new requirements — they decide whether a proposal is accepted and whether it is scoped for Q4 or deferred
 - New requirements are collected by the workstream leads with input from their respective agent teams. Any team member can propose work, but acceptance and prioritisation are decided jointly by the workstream lead and the Engineering Excellence leads
-- Progress tracked in this directory; one subdirectory per workstream
 - **PM consultation required** when changes under any workstream have external impact on agent behaviour or user-facing responses (e.g., answer quality, data exposure, conversational flow). Such changes must be reviewed with Product Management before rollout
 
 ### Tracking
