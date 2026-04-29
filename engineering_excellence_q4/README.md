@@ -15,17 +15,15 @@ A set of engineering-driven initiatives to standardize agent architecture, reduc
 
 The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights (HRI)**, **Security Advisory**, **Security Hardening**, and **LDOS**. Each was built independently, resulting in parallel implementations of the same concerns: RAG retrieval, MCP tooling, context handling, state management, and observability.
 
-### Workstreams (to be discussed)
+### Workstreams
 
 | Workstream | Summary |
 |---|---|
-| **EE-1 — Agent Architecture Patterns** | Define and document standard LangGraph patterns (node structure, state schema, error handling) for all agents |
+| **EE-1 — Agent Graph & State Architecture** | Define standard LangGraph patterns (node structure, state schema, checkpointer, memory model, error handling) for all agents |
 | **EE-2 — Common RAG Integration** | Converge on a single RAG integration pattern (shared client, ingestion pipeline, and standardized retrieval options per document category) used by all agents |
-| **EE-3 — Common MCP Server** | Extract shared MCP tools (data access, Trino queries, ID resolution) into a single shared server |
-| **EE-4 — LangSmith Platform Migration** | Adopt LangSmith as the unified platform for agent deployment, tracing, and evaluation |
-| **EE-5 — Agent Memory** | Define a consistent agent memory model across short-term (in-thread `GraphState` + checkpointer) and long-term (cross-thread, persisted) memory |
-| **EE-6 — Agent Behavioural Spec** | Define and maintain normative behavioral specifications (RFCs) for all agents; establish compliance tooling and eval coverage |
-...
+| **EE-3 — Common Data & MCP Platform** | Shared MCP tools (data access, Trino queries, ID resolution), centralized data schema registry, and standardized text-to-SQL patterns |
+| **EE-4 — Deployment & Observability Platform** | Adopt LangSmith as the unified platform for agent deployment, tracing, and evaluation; standardize CI/CD pipelines, environment config, and release processes |
+| **EE-5 — Agent Behavioural Spec** | Define and maintain normative behavioral specifications (RFCs) for all agents; establish compliance tooling and eval coverage |
 
 ---
 
@@ -77,13 +75,11 @@ Q4 is a window to invest in the platform before the next major feature cycle. St
 
 | Workstream | Directory | Lead | Status |
 |---|---|---|---|
-| EE-1 Agent Architecture Patterns | `ee1_agent_patterns/` | TBD | Not started |
+| EE-1 Agent Graph & State Architecture | `ee1_agent_architecture/` | TBD | Not started |
 | EE-2 Common RAG Integration | `ee2_rag_integration/` | TBD | Not started |
-| EE-3 Common MCP Server | `ee3_common_mcp/` | TBD | Not started |
-| EE-4 LangSmith Platform Migration | `ee4_langsmith_migration/` | TBD | Not started |
-| EE-5 Agent Memory | `ee5_agent_memory/` | TBD | Not started |
-| EE-6 Agent Behavioural Spec | `ee6_agent_behaviour/` | TBD | Not started |
-....
+| EE-3 Common Data & MCP Platform | `ee3_data_mcp/` | TBD | Not started |
+| EE-4 Deployment & Observability Platform | `ee4_deploy_observability/` | TBD | Not started |
+| EE-5 Agent Behavioural Spec | `ee5_agent_behaviour/` | TBD | Not started |
 
 ---
 
