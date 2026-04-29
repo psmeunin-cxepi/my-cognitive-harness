@@ -1,6 +1,6 @@
 # Conversation History — Cross-Agent Analysis
 
-> **Workstream:** EE-5 — Agent Memory
+> **Workstream:** EE-1 — Agent Graph & State Architecture
 >
 > **Date:** 2026-04-28
 >
@@ -312,4 +312,4 @@ A code comment in `assistant.py` explicitly documents the design: *"Prior turns 
 5. **Close the risk-app guardrail gap.** Apply input guardrails (or at least a length/character-class sanity check) to `conversation_history` as well as the current question. Document the trust boundary.
 6. **Document the upstream contract.** The `[role] content\n…` format and the `recent_context` / `recent_context_structured` keys are an implicit contract between Semantic Router and the agents. Promote it to a written spec under `agent_behavioural_spec/`.
 7. **Add a token-budget / windowing strategy at the shared layer.** Today the full string is passed through. A shared helper (`trim_history_to_token_budget`, `keep_last_n_turns`) in `cvi_ai_shared` would let agents apply consistent limits.
-8. **Plan checkpointer adoption (EE-5 follow-up).** This document is scoped to the "history-as-memory" substitute, which sits in the **short-term memory** layer of EE-5. A separate proposal under the same workstream should cover real LangGraph checkpointer adoption (Postgres / Redis backends) for short-term memory, and a **long-term memory** layer (cross-thread, persisted user/account-level memory) for facts the agents should remember beyond a single conversation.
+8. **Plan checkpointer adoption (EE-1 follow-up).** This document is scoped to the "history-as-memory" substitute, which sits in the **short-term memory** layer of EE-1. A separate proposal under the same workstream should cover real LangGraph checkpointer adoption (Postgres / Redis backends) for short-term memory, and a **long-term memory** layer (cross-thread, persisted user/account-level memory) for facts the agents should remember beyond a single conversation.

@@ -1,6 +1,6 @@
 # Step Updates — Cross-Agent Analysis
 
-> **Workstream:** EE-3 — Step Updates
+> **Workstream:** EE-1 — Agent Graph & State Architecture
 >
 > **Date:** 2026-04-28
 >

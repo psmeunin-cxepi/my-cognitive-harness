@@ -1,6 +1,6 @@
 # Context Switch Handling — Cross-Agent Analysis
 
-> **Workstream:** EE-6 — Agent Behavioural Spec
+> **Workstream:** EE-5 — Agent Behavioural Spec
 >
 > **Date:** 2026-04-23
 >
