@@ -27,18 +27,24 @@ This document analyses how each agent answers those questions today and compares
 
 ## 2. How It Works Today
 
-The end-to-end invocation path is the same for every agent:
+The end-to-end invocation path is the same for every agent — **the Semantic Router always invokes agents over A2A** (`A2AClient.send_message` / `send_message_streaming` in `cvi_ai_shared.core.agents`). It never calls an agent's FastAPI `/chat` directly.
 
 ```
 User prompt
-  → Semantic Router (selects an agent + skill_id from a global skill catalog)
-  → Agent endpoint
-       • A2A agents: skill_id arrives in A2A Message.metadata
-       • FastAPI agents: skill_id arrives in the JSON request body (skill_id field)
-  → Agent extracts skill_id (with a hardcoded default if absent)
-  → Agent uses skill_id to derive: system prompt, optional sub-graph, downstream endpoint
-  → LLM + tools execute
+  → Semantic Router (selects agent + skill from a global skill catalog)
+  → A2A wire — SendMessageRequest, skill in MessageSendParams.metadata["skill_id"]
+  → Agent's A2A Starlette server → AgentExecutor.execute()
+        → reads context.metadata["skill_id"] (with a hardcoded default if absent)
+        → dispatches to a registered skill handler
+  → Internal hop to business logic. Two patterns exist:
+        • ConfigBP, HRI: handler issues an HTTP POST to its own FastAPI /chat
+          (loopback or in-cluster), forwarding skill_id in the request body.
+        • LDOS, Risk-App (Adv/Hard): handler issues an HTTP POST to a separate
+          downstream API (LDOS API, Security Assessment / Hardening API).
+  → LangGraph + tools execute, response streamed back through the A2A EventQueue.
 ```
+
+The FastAPI `/chat` endpoints in ConfigBP and HRI are reachable directly (useful for local development and integration tests), **but the Semantic Router never uses them** — they are an internal hop after the A2A executor in the production path.
 
 **Key shared facts:**
 
@@ -70,10 +76,7 @@ The wire detail matters: `cvi_ai_shared.core.payloads.question_payload_to_a2a_re
 
 #### Architecture
 
-**Two inbound paths converging on one graph:**
-
-1. **A2A path (production, used by the Semantic Router)** — `A2AStarletteApplication` serves the AgentCard on port 9000. `ConfigBPAgentExecutor.execute()` extracts `skill_id` from `context.metadata` and dispatches to a registered skill handler, which in turn POSTs to the internal FastAPI `/chat` endpoint with `skill_id` in the body.
-2. **Direct FastAPI path** — `POST /chat` and `POST /chat/stream` accept `ChatRequest.skill_id` directly. Used for local testing and any non-A2A callers.
+A2A is the only SR-facing entry point. `A2AStarletteApplication` serves the AgentCard; `ConfigBPAgentExecutor.execute()` extracts `skill_id` from `context.metadata` and dispatches to a registered skill handler. The handler then issues a loopback HTTP POST to the agent's own FastAPI `/chat` endpoint (`http://localhost:8081/chat` by default), forwarding `skill_id` in the request body. The FastAPI `/chat` and `/chat/stream` endpoints are also reachable directly for local development and integration tests, but the Semantic Router does not use them.
 
 Both paths feed the same LangGraph: `flow_router → assistant ⇄ tools`.
 
@@ -83,7 +86,8 @@ Both paths feed the same LangGraph: `flow_router → assistant ⇄ tools`.
 
 | Aspect | Implementation |
 |--------|----------------|
-| **Inbound field** | A2A: `context.metadata["skill_id"]`. FastAPI: `ChatRequest.skill_id` (optional) on `POST /chat`. |
+| **Inbound field (SR path)** | `context.metadata["skill_id"]` on the A2A `RequestContext` (the only SR-facing path) |
+| **Inbound field (direct FastAPI)** | `ChatRequest.skill_id` on `POST /chat` — used only for local development |
 | **Default** | `DEFAULT_SKILL_ID = "assessments-configuration-summary"` (applied in both the A2A executor and the FastAPI handler) |
 | **State key** | Renamed to `effective_intent` and injected into the graph input dict (`{"messages": ..., "effective_intent": resolved}`) |
 | **Validation sets** | Two independent surfaces: (a) A2A `_registry` populated by `@register_skill(...)` decorators in `a2a_server/handlers/skill_handlers.py` (4 skills registered: `assessments-configuration-summary`, `asset-scope-analysis`, `rule-analysis`, `signature-asset-insights`); (b) `_VALID_SKILLS` set in `agent/nodes/assistant.py` used only for the prompt-template lookup. |
@@ -212,7 +216,7 @@ A2A `AgentExecutor` in front of a single monolithic async handler that calls the
 
 #### Architecture
 
-FastAPI `/chat` endpoint feeding a LangGraph (`assistant ⇄ execute_tools`). A2A skill handler also exists for inbound A2A traffic.
+Same two-stage pattern as ConfigBP. `A2AStarletteApplication` is the only SR-facing entry point; the A2A executor dispatches to a skill handler which issues an HTTP POST to the agent's own FastAPI `/chat` endpoint (via the in-cluster APISIX gateway). The FastAPI `/chat` is also reachable directly for local development. The graph is `assistant ⇄ execute_tools`.
 
 #### Key Behaviors
 
@@ -220,7 +224,8 @@ FastAPI `/chat` endpoint feeding a LangGraph (`assistant ⇄ execute_tools`). A2
 
 | Aspect | Implementation |
 |--------|----------------|
-| **Inbound field** | `ChatRequest.skill_id` on `POST /chat` (and A2A metadata via the A2A handler) |
+| **Inbound field (SR path)** | `context.metadata["skill_id"]` on the A2A `RequestContext` (the only SR-facing path) |
+| **Inbound field (direct FastAPI)** | `ChatRequest.skill_id` on `POST /chat` — used only for local development |
 | **Default** | `DEFAULT_SKILL_ID = "assessment-rating-capabilities"` |
 | **State key** | `AgentState.skill_id: Optional[str]` (consistent naming, unlike ConfigBP) |
 | **Validation set** | `VALID_INTENTS = ["assessment-rating-analysis-query", "assessment-rating-capabilities"]` defined in `agent/core/config.py` — **declared but never referenced** anywhere in the runtime path |
@@ -253,14 +258,15 @@ FastAPI `/chat` endpoint feeding a LangGraph (`assistant ⇄ execute_tools`). A2
 
 | Aspect | ConfigBP | LDOS | Risk-App (Adv/Hard) | HRI |
 |--------|----------|------|---------------------|-----|
-| **Inbound transport** | A2A metadata (prod) + FastAPI body (direct) | A2A metadata | A2A metadata | FastAPI body (+ A2A) |
-| **Inbound field name** | `skill_id` | `skill_id` | `skill_id` | `skill_id` |
+| **SR-facing transport** | A2A only | A2A only | A2A only | A2A only |
+| **Internal hop after A2A** | HTTP POST to own `/chat` (loopback) | HTTP POST to LDOS API | HTTP POST to Security Assessment / Hardening API | HTTP POST to own `/chat` (via in-cluster gateway) |
+| **Inbound field name** | `skill_id` (in `MessageSendParams.metadata`) | `skill_id` | `skill_id` | `skill_id` |
 | **Internal field name** | `effective_intent` | (handler-local) | (handler-local) | `skill_id` |
 | **Default if missing** | `assessments-configuration-summary` | `ask_cvi_ldos_ai_external` | `ask_security_assessment` / `ask_security_hardening` | `assessment-rating-capabilities` |
 | **Validates against AgentCard?** | No | No | No | No |
 | **Has a "valid skills" set in code?** | Yes — **two** (`_registry` in A2A + `_VALID_SKILLS` in graph) | Yes (`_registry`) | Yes (`_registry`) | Yes (`VALID_INTENTS`) |
 | **Is that set actually enforced?** | A2A: yes (no-op). Graph: partial (falls back to default for prompt lookup). | Yes — unknown skill → no-op | Yes — unknown skill → no-op | **No — declared but unused** |
-| **Behaviour on unknown skill** | A2A: **silent no-op; hangs**. Direct: silent fallback; LLM answers. | **Silent no-op; request hangs** | **Silent no-op; request hangs** | Generic prompt; LLM still answers |
+| **Behaviour on unknown skill** | A2A: **silent no-op; hangs** | **Silent no-op; request hangs** | **Silent no-op; request hangs** | A2A: silent no-op; hangs |
 | **Skill drives system prompt?** | Yes (via MCP template) | No | No (single skill per agent) | Yes (via MCP template) |
 | **Skill drives tool selection?** | No | No | No | No |
 | **Skill drives sub-graph routing?** | No (router branches on `flow_type`) | No (one handler for all skills) | No (one skill per agent) | No |
@@ -276,7 +282,7 @@ FastAPI `/chat` endpoint feeding a LangGraph (`assistant ⇄ execute_tools`). A2
 
 2. **No agent validates the skill id against its own AgentCard.** Four different ad-hoc validation surfaces exist (`_VALID_SKILLS`, `_registry`×2, `VALID_INTENTS`) and none of them are tied back to the `AgentSkill` list the agent advertises. A skill renamed in the AgentCard would silently break with no compile-time or startup-time error.
 
-3. **Unknown-skill behaviour splits along framework lines.** Every A2A inbound path (LDOS, Risk-App×2, and ConfigBP when called via the Semantic Router) silently no-ops — the request enqueues nothing and the user sees a hang. The non-A2A paths (HRI's `/chat`, ConfigBP's direct `/chat`) silently fall back to a default prompt and answer anyway. Both are bad in different ways: A2A hides errors as timeouts, direct FastAPI hides errors as plausible answers. ConfigBP exhibits **both** failure modes depending on which inbound transport is used.
+3. **Unknown-skill behaviour is uniformly bad in production.** Every SR invocation is A2A, and every agent's A2A executor silently no-ops when the `skill_id` is not in its `_registry` — the request enqueues nothing and the user sees a hang. The HRI exception is that its A2A executor passes the unknown skill straight through to the LangGraph (default `""`), where `fetch_system_prompt` falls back to a generic prompt and the LLM answers anyway. ConfigBP and HRI's direct FastAPI `/chat` paths exhibit the silent-fallback behaviour too — but those paths are dev-only and never used by the SR.
 
 4. **The skill id rarely drives anything meaningful.** Across all four codebases the skill id influences only the **system prompt** (ConfigBP, HRI) — and even then only via an MCP fetch that itself silently falls back. It never drives tool selection, sub-graph routing, schema selection, or guardrail policy. LDOS registers three skills that collapse into one handler, with the actual data-scope decision made by authorization. ConfigBP registers four A2A skill handlers that all collapse into one `_generic_skill_handler` — the registry split is structural only.
 
