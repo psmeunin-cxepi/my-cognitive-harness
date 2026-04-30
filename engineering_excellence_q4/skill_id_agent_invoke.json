@@ -1,0 +1,543 @@
+{
+  "agent_candidates": {
+    "agents": [
+      {
+        "capabilities": {
+          "streaming": true
+        },
+        "card_url": "http://cvi-ldos-ai-a2a.cvi-ldos-ai.svc.cluster.local:8002/.well-known/agent.json",
+        "description": "This agent answers questions about a customer's Cisco network assets and inventory data. Route here for asset-related questions that can be answered from structured data, including lifecycle/support timelines, telemetry/connectivity, coverage/contract details, partner/location information, and asset tags.\n\nSUPPORTED DATA DOMAINS:\n- **Asset inventory & discovery:** Counts, lists, and summaries of devices/assets (including unique device counts), filtered by product family, product type, model, PID, serial number, hostname, software type, ship date ranges, equipment type (chassis, modules, cards, fans, power supplies), business entity, managed-by, contract/partner, coverage status, data source, tags/custom groupings (when present), and location/site (city/state/country).\n- **Lifecycle & end-of-life:** EOL/EoX milestones and dates (e.g., End of Sale, End of Software Maintenance, End of Vulnerability/Security Support, and Last Date of Support/LDOS), including assets past/approaching/reaching LDOS within a timeframe, plus current and next milestone tracking.\n- **Contracts, coverage & support:** Covered vs not covered, contract numbers/types (e.g., SNC, SSSNT, SNT, etc.), coverage end/renewal windows, partner/reseller associations, warranty expirations, service programs, entitlement level/CX level/support tier (No support contract, STANDARD, BASIC, LIMITED, SIGNATURE), and extended/MSS support where available.\n- **Telemetry & connectivity:** Connectivity status (connected/not connected), last signal date/type (e.g., Cisco IQ, Diagnostic Scan, Service Request), recently active assets, and rollups by location/product family/data source.\n- **Partners, locations & shipping:** Partner/reseller names, install locations, site/city/country, ship dates, device age, and geographic distribution.\n- **Software & maintenance:** Software types, end of software maintenance dates (when present), and software lifecycle status.\n- **Tags & custom groupings:** User-defined asset tags stored as Key:Value strings (e.g., 'Status:Retired', 'Location:Texas'). Supports tag-based filtering (contains/matches), tag rollups (assets per tag key/value), identifying untagged assets, and inventory slices by tag.\n- **Field notice counts (device-level, critical/high severity only):** Counts of critical and high severity field notices affecting each device, for filtering or aggregating assets by field notice exposure. Only count-based queries are supported — no field notice details or remediation.\n- **Pricing & value (when present):** List price/net value for opportunity sizing and rollups by product family, location, business entity, or support status.\n\nSUPPORTED QUERY TYPES:\n- Aggregations & summaries (count/sum/avg/min/max)\n- Filtered inventory lists and specific device lookups (serial number / PID)\n- Group-by breakdowns, top-N rankings, and comparisons\n- Time-based analysis (trends, upcoming/expiring, reaching/past LDOS)\n- Tag analytics (filtering, rollups, untagged asset identification)\n\nIMPORTANT - ALSO ROUTE THESE HERE:\n- Tag-focused questions (filtering, rollups, untagged assets)\n- Vague/exploratory or informal inventory questions; partially answerable questions\n\nDO NOT ROUTE HERE:\n- Questions about asset criticality, Place in Network (PIN), role/importance, or risk-based prioritization (route to Asset Criticality agent instead)\n- Questions about how Cisco products work, feature explanations, or product roadmaps\n- Network configuration, troubleshooting, or CLI command help\n- Requests to write code, scripts, or automation\n- Step-by-step remediation procedures or manual fix instructions\n— route those to the Troubleshooting agent instead\n- Questions completely unrelated to Cisco device inventory (weather, news, general knowledge)\n\n",
+        "name": "Assets (General)",
+        "region": "us-west-2",
+        "skills": [
+          {
+            "available_questions": [
+              "Summarize assets past Last Date of Support (LDOS).",
+              "Summarize assets reaching Last Date of Support (LDOS) in the next 12 months.",
+              "Generate a PPT summary report for all Last Date of Support (LDOS) assets.",
+              "How many sub-components will reach LDOS in the next 12 months?",
+              "How many different software versions are present in my top 5 software types?",
+              "How many assets are both covered and past their Last Date of Support (LDOS)?",
+              "Summarize the top 5 product families with the most devices past LDOS and affected by security advisories.",
+              "Summarize cards and modules past LDOS and affected by security advisories.",
+              "How many sub-components are hitting end of life milestones earlier than their parent chassis?"
+            ],
+            "description": "Answers customer-facing questions about Cisco asset inventory and product lifecycle data. Covers EOL/LDOS milestones, coverage/contract details, telemetry, security advisories, field notice counts (device-level, critical/high severity only), tags, pricing, partners, and location breakdowns using customer-authorized data sources.",
+            "name": "ask_cvi_ldos_ai_external",
+            "tags": [
+              "sav_id",
+              "iq_external",
+              "asset-inventory",
+              "lifecycle",
+              "ldos",
+              "end-of-life",
+              "coverage",
+              "telemetry",
+              "security-advisory",
+              "contract"
+            ]
+          }
+        ],
+        "url": "http://cvi-ldos-ai-a2a.cvi-ldos-ai.svc.cluster.local:8002"
+      },
+      {
+        "capabilities": {
+          "extensions": null,
+          "pushNotifications": null,
+          "stateTransitionHistory": null,
+          "streaming": true
+        },
+        "card_url": "https://cx-ai-assistants.cisco.com/a2a/6851d553af02457529eefa2c/.well-known/agent.json",
+        "description": "This agent handles questions related to support case management or support service requests (SRs).\nusers can reference the case by either saying support case, case number or SR followed by the SR number.\n\nExamples of support case or service request (SR) numbers:\n\n* 700719425\n* 700719441\n* 700651636\n\nIt can help with:\n\n* Listing cases\n* Summarizing cases\n* Checking case status\n* Creating cases\n* Escalating a case\n* Requeuing a case to a new engineer\n* Adding a new participant to a case\n* Retrieving bug details\n* Retrieving RMA details\n* Creating a virtual space for a case\n* Raising case severity\n* Closing the case.\n* Adding note to a case.\n\n\n\nRouting rule:\nUse this agent whenever a user references a support case, SR, or support ticket.",
+        "name": "Cases",
+        "region": "us-west-2",
+        "skills": [
+          {
+            "available_questions": [],
+            "description": "Task that will get the details of a given Service Request (SR) returning both the values and descriptions for each field in the SR details.\nThe return will be a dictionary with the following structure:\n{\"field_name\":{\"value\":<value>,\"description\":<description_of_the_field>}, ...}",
+            "name": "csf_ai_get_case_details",
+            "tags": []
+          },
+          {
+            "available_questions": [
+              "Show me my open cases"
+            ],
+            "description": "This task will list all of the Cisco Support (TAC) cases the customer has open. It will return back a Markdown table of the cases with columns of case number, subject.",
+            "name": "cx_ai_list_cases",
+            "tags": []
+          },
+          {
+            "available_questions": [],
+            "description": "This function is used to generate a creates a summary for a Cisco TAC support case or a service request. You should return the generated summary to the end user when requested\n\nYou must run this tool using required inputs caseNumber and userID",
+            "name": "caia_generate_summary",
+            "tags": [
+              "iq_external"
+            ]
+          },
+          {
+            "available_questions": [
+              "Close this support case"
+            ],
+            "description": "This function is used to close a tac service requested. You must run this tool using required inputs caseNumber and userID.\n\nTell the end user the case will be queued for closure and will be closed in 5-10 minutes.\n\nOnly use this function when the user asks to close a case.",
+            "name": "copilot_auto_close",
+            "tags": []
+          },
+          {
+            "available_questions": [
+              "Show me the summary of a RMA",
+              "Show me the summary of a bug",
+              "Give me an update on a case",
+              "Give the most recent update and any pending action items for a case",
+              "Close an open case",
+              "Add a participant to a case’s contact list",
+              "Create a Webex space communication about a case",
+              "Connect me with the engineer handling the case",
+              "Raise the severity level of an open case",
+              "Escalate an open case",
+              "Request a new engineer for a case",
+              "Re-queue an open case"
+            ],
+            "description": "case management tools allowing to escalate cases, list cases, connect me to the engineer",
+            "name": "buff_mcp",
+            "tags": []
+          },
+          {
+            "available_questions": [
+              "Add note to a case"
+            ],
+            "description": "Can update a support case or a tac case by adding a note to a case. this will trigger an update to the case owner.",
+            "name": "add_note_to_case",
+            "tags": []
+          },
+          {
+            "available_questions": [],
+            "description": "A script used to create a Cisco Technical Assistance Center(TAC) case from the CX AI response. This will require a problem description, case title, and the specific Cisco product the user needs support for. Do not use this function if you are not explicitly asked by the end user to open a Cisco support case. If the product is unclear from the user's description, ask the user to clarify before calling this task.",
+            "name": "cx_ai_case_create",
+            "tags": []
+          }
+        ],
+        "url": "https://cx-ai-assistants.cisco.com/a2a/6851d553af02457529eefa2c/"
+      },
+      {
+        "capabilities": {
+          "extensions": null,
+          "pushNotifications": null,
+          "stateTransitionHistory": null,
+          "streaming": true
+        },
+        "card_url": "https://cx-ai-assistants.cisco.com/a2a/69dcf9264a6f24455728babe/.well-known/agent.json",
+        "description": "This agent handles **technical troubleshooting and investigative support** when a user reports a product, device, software, configuration, interoperability, wireless, or operational issue and needs help understanding, diagnosing, or resolving it.\n\nUse this agent when the user:\n\n* reports a problem, symptom, outage, error, failure, or unexpected behavior\n* ask for help configuring a device, or configuration steps.\n* shares logs, syslog messages, crash dumps, traces, stack traces, or error output\n* asks for help debugging a device, feature, protocol, SSID, or configuration\n* asks about release notes, compatibility, configuration guidance, or known defect behavior in order to troubleshoot an issue\n* asks for root cause analysis, historical TAC case patterns, or likely remediation paths\n* asks general question about a **CVE** or **Field Notice (FN)** in a **technical troubleshooting context** not related to their devices\n\nThis agent can:\n\n* explain logs, syslog messages, crash output, and error messages\n* help debug device and network issues\n* Configuration assistant and compatibility.\n* search Cisco documentation, configuration guides, compatibility guides, and release notes\n* answer general informational questions about a specific field notice (e.g. summary, affected products, workaround) -- but NOT questions about whether the customer's own devices/assets are impacted (route those to Assets)\n\nThis agent can't:\n\n* perform **fleet-level exposure analysis**\n* determine how many customer devices are impacted by a CVE, FN, or advisory\n* identify which customer assets in the network are vulnerable or exposed\n* provide counts of critical or high advisories across a customer environment\n* handle asset-centric or environment-wide vulnerability assessment requests\n\nDo **not** use this agent when the user is asking:\n\n* how many devices are impacted\n* which assets in the network are vulnerable\n* counts of critical/high advisories",
+        "name": "Troubleshooting",
+        "region": "us-west-2",
+        "skills": [
+          {
+            "available_questions": [],
+            "description": "General Field Notice information (FN ID, summary, affected platforms). Does NOT check customer inventory or device-level impact - route those to Assets (General).",
+            "name": "cx_ai_fn_q_a",
+            "tags": []
+          },
+          {
+            "available_questions": [
+              "How do I troubleshoot Syslog error [Error] and identify the root cause?",
+              "How do I troubleshoot configuration issues and identify the root cause for [ABCD]?",
+              "How do I configure [XYZ] on Product ID [ABCD]?"
+            ],
+            "description": "A script use to retrieve CVE information using the CVE id as input, for example CVE-2022-20968 \n",
+            "name": "Enola_Get_CVE",
+            "tags": []
+          }
+        ],
+        "url": "https://cx-ai-assistants.cisco.com/a2a/69dcf9264a6f24455728babe/"
+      },
+      {
+        "capabilities": {
+          "streaming": true
+        },
+        "card_url": "http://cvi-ldos-ai-a2a-criticality.cvi-ldos-ai.svc.cluster.local:8003/.well-known/agent.json",
+        "description": "This agent answers questions about asset risk, criticality, and prioritization for a customer's Cisco network devices. Route here for questions involving Place in Network (PIN) role and importance, risk-based refresh/coverage/renewal recommendations, and prioritization of remediation actions.\n\nSUPPORTED DATA DOMAINS:\n- **Asset Criticality Insights (Place-in-Network / PIN), role & importance:** Questions about an asset's role within the network (core, border, access, etc.), relative importance/criticality, and prioritization/ranking of actions (refresh/coverage/renewal/remediation) using Asset Criticality Insights / PIN / role / importance signals.\n- **Security exposure by criticality:** Security advisories (PSIRT advisories, CVE/vulnerability advisories) presence and severity (critical/high), correlated with device importance — e.g., 'how many of my core devices have critical advisories', 'which high-importance assets are affected'.\n- **Field notice counts by criticality (critical/high severity only):** Device-level critical and high severity field notice counts correlated with role and importance for prioritization.\n- **Risk-based prioritization:** Ranking assets for refresh, coverage, or remediation based on combined risk signals (LDOS status + security advisories + PIN importance).\n\nSUPPORTED QUERY TYPES:\n- Prioritization/ranking using Asset Criticality Insights (Place-in-Network / PIN), including PIN-enriched Smart Reports\n- Risk correlation queries (e.g., end-of-life AND active vulnerabilities AND high importance)\n- Group-by breakdowns by role/importance\n- Top-N most critical assets\n\nIMPORTANT - ALSO ROUTE THESE HERE:\n- Questions about 'most critical assets', 'highest risk devices', 'what to refresh first'\n- Questions combining security posture with device importance\n- Questions like 'how many switches are affected by critical advisories' when asking about prioritization\n\nDO NOT ROUTE HERE:\n- General asset inventory questions without a criticality/prioritization angle (route to LDOS Analysis agent instead)\n- Questions about how Cisco products work, feature explanations, or product roadmaps\n- Network configuration, troubleshooting, or CLI command help\n- Requests to write code, scripts, or automation\n- Step-by-step remediation procedures or manual fix instructions (but DO route prioritization questions)\n- Questions completely unrelated to Cisco device inventory (weather, news, general knowledge)\n",
+        "name": "Asset Criticality",
+        "region": "us-west-2",
+        "skills": [
+          {
+            "available_questions": [
+              "What are my most critical assets by role and importance?",
+              "How many core devices are affected by security advisories?",
+              "Summarize critical and high importance devices with coverage expiring in the next 12 months",
+              "Prioritize LDOS assets for refresh based on role and importance.",
+              "Prioritize uncovered or soon-to-be uncovered assets for renewal based on role and importance.",
+              "Prioritize expiring contracts for renewal based on role and importance of those covered assets.",
+              "Prioritize PSIRT vulnerabilities based on severity and role and importance of affected assets."
+            ],
+            "description": "Answers questions about asset risk, criticality, and prioritization based on Place-in-Network (PIN) role and importance. Covers risk-ranked refresh/coverage recommendations, security advisory prioritization by device criticality, and highest-risk asset identification.",
+            "name": "ask_asset_criticality",
+            "tags": [
+              "ldos",
+              "criticality",
+              "place-in-network",
+              "risk-ranking",
+              "refresh",
+              "security-advisory",
+              "prioritization",
+              "pin"
+            ]
+          }
+        ],
+        "url": "http://cvi-ldos-ai-a2a-criticality.cvi-ldos-ai.svc.cluster.local:8003"
+      },
+      {
+        "capabilities": {
+          "pushNotifications": false,
+          "stateTransitionHistory": false,
+          "streaming": true
+        },
+        "card_url": "http://configbp-ai-a2a-server.assessments-configuration.svc.cluster.local:9000/.well-known/agent.json",
+        "description": "Analyzes how a customer's network configuration is performing against best practice rules, surfaces detected failures with severity and impact details, and provides remediation recommendations and corrective actions. Capabilities span four skills: (1) assessment-wide summaries with severity distributions, failure counts, and aggregate metrics; (2) asset-scoped analysis filterable by hostname, IP, product family, software type, location, and 20+ other dimensions to pinpoint which devices are most impacted; (3) rule-centric impact analysis showing which best practice rules have the most failures, which assets are affected, and how to remediate; and (4) pre-generated AI insights for Signature-covered assets with prioritized focus areas.",
+        "name": "Assessments – Configuration",
+        "region": "us-west-2",
+        "skills": [
+          {
+            "available_questions": [
+              "Can you provide a summary of my recent Configuration Assessment?",
+              "How many configuration best practice rules were evaluated, and how many resulted in at least one asset that did not pass?",
+              "What are the most common configuration deviations across my network?",
+              "How many assets were evaluated, and what percentage did not pass?",
+              "Which categories have the most deviations from configuration best practices?",
+              "Show breakdown of configuration best practice rules deviations by severity, category, and software type"
+            ],
+            "description": "Provides a comprehensive overview of how the customer's network configuration is doing: how many assets were assessed, how many best practice rules were evaluated, how many failures were detected, and how they break down by severity (critical, high, medium, low). Returns execution summaries, pass/fail rates and percentages, technology and category breakdowns, top impacted assets ranked by failure count, and the rules with the most failures. Handles broad questions about common configuration deviations across the network, severity trends, overall assessment posture, and breakdowns by severity, category, and software type.",
+            "name": "assessments-configuration-summary",
+            "tags": [
+              "assessment",
+              "summary",
+              "severity",
+              "overview",
+              "distribution",
+              "metrics",
+              "technology",
+              "execution",
+              "failures",
+              "pass-fail",
+              "category",
+              "trends"
+            ]
+          },
+          {
+            "available_questions": [
+              "Which Cisco product families have the most deviations from configuration best practices?",
+              "Which assets have the maximum of critical and high severity configuration deviations? What corrective actions are recommended?",
+              "Show breakdown of critical and high severity configuration deviations by asset criticality"
+            ],
+            "description": "Shows which specific assets have configuration failures and what to do about them, including corrective actions and remediation recommendations. Can show deviations for a single asset or a specific product family. Scopes analysis to individual devices or filtered asset sets by hostname, IP address, product family, product type, asset type, location, software type and version, contract number, coverage status, support type, telemetry status, data source, partner name, entitlement level, role, lifecycle milestones, and date-range dimensions. Returns failures, failed rules, severity distributions, corrective actions, and remediation recommendations for the scoped assets. Enables comparisons across product families, criticality levels, and software versions, and can break down critical and high severity deviations by asset criticality.",
+            "name": "asset-scope-analysis",
+            "tags": [
+              "asset",
+              "device",
+              "hostname",
+              "ip-address",
+              "product-family",
+              "product-type",
+              "location",
+              "impact",
+              "software-type",
+              "software-version",
+              "contract",
+              "coverage",
+              "lifecycle",
+              "criticality",
+              "scope",
+              "filter"
+            ]
+          },
+          {
+            "available_questions": [
+              "Which configuration deviations pose the highest risk to my network, and what corrective actions are recommended?"
+            ],
+            "description": "Explains which configuration best practice rules are failing, how many assets are affected, and what remediation or corrective actions to take. Identifies which deviations pose the highest risk to the network. Supports single-rule deep dives by rule ID or name with per-rule summaries, cross-rule comparisons, and rule-level summaries with failure counts. Returns rule descriptions, severity levels, technology and OS breakdowns of failures showing which technology contributes the most, and lists of impacted assets. Supports filtering by severity (e.g. high-severity only or critical rules only), technology, rule category, and optional asset scope to narrow impact to specific devices or product families.",
+            "name": "rule-analysis",
+            "tags": [
+              "rule",
+              "compliance",
+              "failure",
+              "configuration",
+              "policy",
+              "remediation",
+              "corrective-action",
+              "impact",
+              "risk",
+              "category",
+              "technology"
+            ]
+          },
+          {
+            "available_questions": [],
+            "description": "Surfaces pre-generated AI insights that tell Signature customers where their most important configuration issues are and what to focus on first. Provides a summary of the latest Signature asset assessment with prioritized observations, top insights, related rule IDs, impacted asset lists, and actionable remediation recommendations. Supports retrieving all insights or a specific insight by ID.",
+            "name": "signature-asset-insights",
+            "tags": [
+              "insights",
+              "signature",
+              "ai-generated",
+              "recommendations",
+              "prioritization",
+              "remediation",
+              "focus-areas"
+            ]
+          }
+        ],
+        "url": "http://configbp-ai-a2a-server.assessments-configuration.svc.cluster.local:9000"
+      },
+      {
+        "capabilities": {
+          "streaming": true
+        },
+        "card_url": "http://security-advisory-ai-a2a.cvi-security-assessment-ai.svc.cluster.local:8008/.well-known/agent.json",
+        "description": "Questions and content must be directly related to Cisco Security Assessments and device vulnerability analysis. **PSIRT Vulnerability:** Questions about specific PSIRTs (e.g., PSIRT-1234) and which devices are affected. **Vulnerability Impact:** Questions about critical or high severity vulnerabilities across the device fleet. **Security Hardening:** Questions related to security hardening best practices and device compliance. **Device Telemetry:** Questions about device telemetry data as it relates to security assessments. **Risk Analysis:** Questions regarding the overall security posture and risk profile of the network.",
+        "name": "Assessments - Security Advisories",
+        "region": "us-west-2",
+        "skills": [
+          {
+            "available_questions": [
+              "Are there any advisories related to DHCP?",
+              "Is there a security advisory to check for webUI privilege escalation vulnerabilities related to salt typhoon?",
+              "Before I enable HTTP, can you check for known security advisories or vulnerabilities related to enabling HTTP?",
+              "How many security advisories are vulnerable in my network?",
+              "How many devices are vulnerable to security advisories?"
+            ],
+            "description": "Answers questions about Cisco Security Assessments, focusing on device telemetry classification and vulnerability status. Provides analytics on Security Advisories (PSIRTs), security hardening best practices, and device susceptibility to vulnerabilities.",
+            "name": "ask_security_assessment",
+            "tags": [
+              "security_assessment",
+              "psirt",
+              "vulnerability",
+              "risk",
+              "telemetry"
+            ]
+          }
+        ],
+        "url": "http://security-advisory-ai-a2a.cvi-security-assessment-ai.svc.cluster.local:8008"
+      },
+      {
+        "capabilities": {
+          "streaming": true
+        },
+        "card_url": "http://security-hardening-ai-a2a.cvi-security-assessment-ai.svc.cluster.local:8009/.well-known/agent.json",
+        "description": "Questions and content must be directly related to Cisco security hardening best practices. **Hardening Guidance:** Questions about recommended secure configurations and baselines. **Device Compliance:** Questions about compliance with security hardening standards. **Configuration Recommendations:** Questions about recommended settings for IOS/IOS XE/NX-OS.",
+        "name": "Assessments - Security Hardening",
+        "region": "us-west-2",
+        "skills": [
+          {
+            "available_questions": [
+              "What are Cisco security hardening best practices for network devices?",
+              "How do I harden my Cisco IOS XE devices?",
+              "List key security hardening steps for routers and switches.",
+              "What are recommended baseline hardening settings for Cisco devices?",
+              "How many assets are in violation of security hardening best practices?"
+            ],
+            "description": "Answers questions about Cisco security hardening best practices. Provides guidance on baseline hardening recommendations, secure configurations, and device compliance with security hardening standards.",
+            "name": "ask_security_hardening",
+            "tags": [
+              "security_hardening",
+              "best_practices",
+              "hardening",
+              "baseline",
+              "compliance"
+            ]
+          }
+        ],
+        "url": "http://security-hardening-ai-a2a.cvi-security-assessment-ai.svc.cluster.local:8009"
+      }
+    ],
+    "weighted_agent_names": [
+      "Assets (General)"
+    ]
+  },
+  "agent_choice": {
+    "agent_description": "This agent answers questions about a customer's Cisco network assets and inventory data. Route here for asset-related questions that can be answered from structured data, including lifecycle/support timelines, telemetry/connectivity, coverage/contract details, partner/location information, and asset tags.\n\nSUPPORTED DATA DOMAINS:\n- **Asset inventory & discovery:** Counts, lists, and summaries of devices/assets (including unique device counts), filtered by product family, product type, model, PID, serial number, hostname, software type, ship date ranges, equipment type (chassis, modules, cards, fans, power supplies), business entity, managed-by, contract/partner, coverage status, data source, tags/custom groupings (when present), and location/site (city/state/country).\n- **Lifecycle & end-of-life:** EOL/EoX milestones and dates (e.g., End of Sale, End of Software Maintenance, End of Vulnerability/Security Support, and Last Date of Support/LDOS), including assets past/approaching/reaching LDOS within a timeframe, plus current and next milestone tracking.\n- **Contracts, coverage & support:** Covered vs not covered, contract numbers/types (e.g., SNC, SSSNT, SNT, etc.), coverage end/renewal windows, partner/reseller associations, warranty expirations, service programs, entitlement level/CX level/support tier (No support contract, STANDARD, BASIC, LIMITED, SIGNATURE), and extended/MSS support where available.\n- **Telemetry & connectivity:** Connectivity status (connected/not connected), last signal date/type (e.g., Cisco IQ, Diagnostic Scan, Service Request), recently active assets, and rollups by location/product family/data source.\n- **Partners, locations & shipping:** Partner/reseller names, install locations, site/city/country, ship dates, device age, and geographic distribution.\n- **Software & maintenance:** Software types, end of software maintenance dates (when present), and software lifecycle status.\n- **Tags & custom groupings:** User-defined asset tags stored as Key:Value strings (e.g., 'Status:Retired', 'Location:Texas'). Supports tag-based filtering (contains/matches), tag rollups (assets per tag key/value), identifying untagged assets, and inventory slices by tag.\n- **Field notice counts (device-level, critical/high severity only):** Counts of critical and high severity field notices affecting each device, for filtering or aggregating assets by field notice exposure. Only count-based queries are supported — no field notice details or remediation.\n- **Pricing & value (when present):** List price/net value for opportunity sizing and rollups by product family, location, business entity, or support status.\n\nSUPPORTED QUERY TYPES:\n- Aggregations & summaries (count/sum/avg/min/max)\n- Filtered inventory lists and specific device lookups (serial number / PID)\n- Group-by breakdowns, top-N rankings, and comparisons\n- Time-based analysis (trends, upcoming/expiring, reaching/past LDOS)\n- Tag analytics (filtering, rollups, untagged asset identification)\n\nIMPORTANT - ALSO ROUTE THESE HERE:\n- Tag-focused questions (filtering, rollups, untagged assets)\n- Vague/exploratory or informal inventory questions; partially answerable questions\n\nDO NOT ROUTE HERE:\n- Questions about asset criticality, Place in Network (PIN), role/importance, or risk-based prioritization (route to Asset Criticality agent instead)\n- Questions about how Cisco products work, feature explanations, or product roadmaps\n- Network configuration, troubleshooting, or CLI command help\n- Requests to write code, scripts, or automation\n- Step-by-step remediation procedures or manual fix instructions\n— route those to the Troubleshooting agent instead\n- Questions completely unrelated to Cisco device inventory (weather, news, general knowledge)\n\n",
+    "agent_name": "Assets (General)",
+    "agent_skill": "ask_cvi_ldos_ai_external",
+    "agent_url": "http://cvi-ldos-ai-a2a.cvi-ldos-ai.svc.cluster.local:8002",
+    "routing_method": "static",
+    "tags": [
+      "sav_id",
+      "iq_external",
+      "asset-inventory",
+      "lifecycle",
+      "ldos",
+      "end-of-life",
+      "coverage",
+      "telemetry",
+      "security-advisory",
+      "contract"
+    ]
+  },
+  "cx_guardrails_decision": "skipped",
+  "cx_routed_agent": "Assets (General)",
+  "cx_routed_skill": "ask_cvi_ldos_ai_external",
+  "cx_routing_method": "static",
+  "initiator_ccoid": "hcayzer",
+  "is_customer": true,
+  "is_static_routing": true,
+  "is_valid_input": true,
+  "payload": {
+    "context": {
+      "app": "asset-explorer",
+      "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+      "filters": {
+        "dashboardId": [
+          "overview"
+        ]
+      },
+      "language": "en-US",
+      "source": "prompt-input-bar:ask",
+      "url": "/asset-explorer/overview/overview(assistant:fullscreen/threads/c4387903-0567-4b90-9833-a7362550fb14)"
+    },
+    "question": "Summarize assets past Last Date of Support (LDOS)."
+  },
+  "recent_context": "[user] \n[Assets (General)] I can help you explore your Cisco install base. Here are my capabilities:\n\n- **Lifecycle & LDOS** — find assets past or approaching end-of-life milestones\n- **Coverage & contracts** — check contract status, warranty, and renewal windows\n- **Security advisories** — surface PSIRTs and vulnerabilities by severity\n- **Inventory breakdowns** — filter by product family, location, software type, tags, and more\n- **Telemetry & connectivity** — see which devices are connected and last signal dates\n\nWhat would you like to know?\n[user] Lifecycle & LDOS — find assets past or approaching end-of-life milestones\n[Assets (General)] I found that your question about finding assets past or approaching their end-of-life milestones returned more than 10 records, making it difficult to display them all in a useful way. To provide a clearer and more actionable answer, I suggest refining your question to focus on aggregated insights or a shorter list of the most critical items.\n\nSuggested questions: \n\n1. How many assets are currently past or approaching their end-of-life milestones?\n2. Summarize the assets by their end-of-life status, showing the top 5 categories with the most affected assets.\n[user] How many assets are currently past or approaching their end-of-life milestones?\n[Assets (General)] There are **1,149 chassis assets** currently past or approaching their end-of-life (EOL) milestones.",
+  "recent_context_structured": {
+    "chat_history": [
+      {
+        "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+        "data": {
+          "context": {
+            "app": "asset-explorer",
+            "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+            "filters": {
+              "dashboardId": [
+                "overview"
+              ]
+            },
+            "language": "en-US",
+            "source": "ask-ai",
+            "url": "/asset-explorer/overview/overview"
+          },
+          "question": ""
+        },
+        "kind": "question",
+        "message_id": "92586e60-b92c-4288-bc93-cd55a24ba9f0",
+        "role": "user",
+        "timestamp": "2026-04-30T12:14:21.465474+00:00"
+      },
+      {
+        "agent_name": "Assets (General)",
+        "agent_skill": "ask_cvi_ldos_ai_external",
+        "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+        "data": {
+          "answer": "I can help you explore your Cisco install base. Here are my capabilities:\n\n- **Lifecycle & LDOS** — find assets past or approaching end-of-life milestones\n- **Coverage & contracts** — check contract status, warranty, and renewal windows\n- **Security advisories** — surface PSIRTs and vulnerabilities by severity\n- **Inventory breakdowns** — filter by product family, location, software type, tags, and more\n- **Telemetry & connectivity** — see which devices are connected and last signal dates\n\nWhat would you like to know?",
+          "completed": true,
+          "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+          "event_type": "token",
+          "message_id": "4b6278ac-e01d-4877-96ca-6cc5e4729d47",
+          "question": ""
+        },
+        "feedback": {
+          "checked_feedback": [],
+          "comments": "",
+          "message_id": "4b6278ac-e01d-4877-96ca-6cc5e4729d47",
+          "thumbs_up_down": -1
+        },
+        "kind": "response",
+        "message_id": "4b6278ac-e01d-4877-96ca-6cc5e4729d47",
+        "role": "agent",
+        "timestamp": "2026-04-30T12:14:21.957714+00:00"
+      },
+      {
+        "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+        "data": {
+          "context": {
+            "app": "asset-explorer",
+            "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+            "filters": {
+              "dashboardId": [
+                "overview"
+              ]
+            },
+            "language": "en-US",
+            "source": "prompt-input-bar:send",
+            "url": "/asset-explorer/overview/overview(assistant:fullscreen/threads/c4387903-0567-4b90-9833-a7362550fb14)"
+          },
+          "question": "Lifecycle & LDOS — find assets past or approaching end-of-life milestones"
+        },
+        "kind": "question",
+        "message_id": "b5195af5-4f9c-4163-9086-637d7692cb4f",
+        "role": "user",
+        "timestamp": "2026-04-30T12:14:37.223631+00:00"
+      },
+      {
+        "agent_name": "Assets (General)",
+        "agent_skill": "ask_cvi_ldos_ai_external",
+        "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+        "data": {
+          "answer": "I found that your question about finding assets past or approaching their end-of-life milestones returned more than 10 records, making it difficult to display them all in a useful way. To provide a clearer and more actionable answer, I suggest refining your question to focus on aggregated insights or a shorter list of the most critical items.\n\nSuggested questions: \n\n1. How many assets are currently past or approaching their end-of-life milestones?\n2. Summarize the assets by their end-of-life status, showing the top 5 categories with the most affected assets.",
+          "completed": true,
+          "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+          "event_type": "token",
+          "message_id": "b05cbd58-3392-4794-be7d-3924fc751f9b",
+          "question": "Lifecycle & LDOS — find assets past or approaching end-of-life milestones"
+        },
+        "feedback": {
+          "checked_feedback": [],
+          "comments": "",
+          "message_id": "b05cbd58-3392-4794-be7d-3924fc751f9b",
+          "thumbs_up_down": -1
+        },
+        "kind": "response",
+        "message_id": "b05cbd58-3392-4794-be7d-3924fc751f9b",
+        "role": "agent",
+        "timestamp": "2026-04-30T12:15:04.342280+00:00"
+      },
+      {
+        "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+        "data": {
+          "context": {
+            "app": "asset-explorer",
+            "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+            "filters": {
+              "dashboardId": [
+                "overview"
+              ]
+            },
+            "language": "en-US",
+            "source": "prompt-input-bar:send",
+            "url": "/asset-explorer/overview/overview(assistant:fullscreen/threads/c4387903-0567-4b90-9833-a7362550fb14)"
+          },
+          "question": "How many assets are currently past or approaching their end-of-life milestones?"
+        },
+        "kind": "question",
+        "message_id": "c5dc60b9-07b0-499d-9a83-e2e2c8e9f9d5",
+        "role": "user",
+        "timestamp": "2026-04-30T12:15:25.497370+00:00"
+      },
+      {
+        "agent_name": "Assets (General)",
+        "agent_skill": "ask_cvi_ldos_ai_external",
+        "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+        "data": {
+          "answer": "There are **1,149 chassis assets** currently past or approaching their end-of-life (EOL) milestones.",
+          "completed": true,
+          "context_id": "c4387903-0567-4b90-9833-a7362550fb14",
+          "event_type": "token",
+          "message_id": "a42bfd9e-6fa7-45f8-b8ff-8a9b25cfeb69",
+          "question": "How many assets are currently past or approaching their end-of-life milestones?"
+        },
+        "feedback": {
+          "checked_feedback": [],
+          "comments": "",
+          "message_id": "a42bfd9e-6fa7-45f8-b8ff-8a9b25cfeb69",
+          "thumbs_up_down": -1
+        },
+        "kind": "response",
+        "message_id": "a42bfd9e-6fa7-45f8-b8ff-8a9b25cfeb69",
+        "role": "agent",
+        "timestamp": "2026-04-30T12:15:43.462520+00:00"
+      }
+    ]
+  },
+  "user_metadata": {
+    "cco_id": "hcayzer",
+    "conversation_id": "c4387903-0567-4b90-9833-a7362550fb14",
+    "email": "hcayzer@cisco.com",
+    "name": "ad5d9edf-6c31-4811-b436-25ff5a92d471",
+    "user_id": "hcayzer",
+    "user_name": "Holly Cayzer"
+  }
+}
