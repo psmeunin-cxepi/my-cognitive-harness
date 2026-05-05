@@ -22,10 +22,19 @@ Do not invent new types.
 
 ### Read
 
-- At session start: read `.agents/memory/MEMORY.md` (the index).
-- During a session: open individual memory files when their index entry looks relevant to the current task.
+- At session start: read `.agents/memory/MEMORY.md` (the index). Eagerly load the body of any memory whose `type` is `user` or `feedback` — these define how to work with the user and apply to every task.
+- During a session: open `project` and `reference` memories on demand, only when their index entry looks relevant to the current task. Do not load them all upfront.
 - Before recommending anything based on a memory: verify the underlying fact still holds (file still exists, function still named that, etc.). A memory is a claim about a past moment, not a guarantee about now.
 - If a memory contradicts what you observe in the current code/state: trust what you observe, then update or delete the stale memory.
+
+**Retrieval contract by type:**
+
+| Type | Retrieval |
+|---|---|
+| `user` | Always-load — eager at session start |
+| `feedback` | Always-load — eager at session start |
+| `project` | On-demand — load when the index entry matches the current task |
+| `reference` | On-demand — load when the index entry matches the current task |
 
 ### Write
 
