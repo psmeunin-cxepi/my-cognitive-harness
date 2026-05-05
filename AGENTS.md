@@ -96,3 +96,7 @@ Memory left unmanaged rots — entries grow stale, contradict each other, and di
 All custom skills are defined in `.agents/skills/`. When a user request matches a skill's description, load and follow the full instructions from that skill's `SKILL.md`. Do not improvise — defer to the skill.
 
 When asked about available skills, list everything found in `.agents/skills/`.
+
+## MCP
+
+MCP server configuration is duplicated across `.mcp.json` (Claude Code) and `.vscode/mcp.json` (GitHub Copilot). When adding, removing, or modifying a server in either file, mirror the change into the other. See `.agents/memory/mcp-config-duplication.md` for the rationale and revisit triggers.
