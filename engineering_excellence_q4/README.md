@@ -43,7 +43,7 @@ The agents in scope are: **Config Best Practices (CBP)**, **Health Risk Insights
 |---|---|
 | **EE-1 — Agent Graph & State Architecture** | Define standard LangGraph patterns (node structure, state schema, checkpointer, memory model, error handling) for all agents |
 | **EE-2 — Common RAG Integration** | Converge on a single RAG integration pattern (shared client, ingestion pipeline, and standardized retrieval options per document category) used by all agents |
-| **EE-3 — Common Data & MCP Platform** | Shared MCP tools (data access, Trino queries, ID resolution), centralized data schema registry, and standardized text-to-SQL patterns |
+| **EE-3 — Common MCP Platform** | Shared MCP tools (data access, Trino queries, ID resolution), centralized data schema registry, and standardized text-to-SQL patterns |
 | **EE-4 — Deployment & Observability Platform** | Adopt LangSmith as the unified platform for agent deployment, tracing, and evaluation; standardize CI/CD pipelines, environment config, and release processes |
 | **EE-5 — Agent Behavioural Spec** | Define and maintain normative behavioral specifications (RFCs) for all agents; establish compliance tooling and eval coverage |
 
