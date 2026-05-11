@@ -1,6 +1,6 @@
 # My Cognitive Harness
 
-> A personal agentic infrastructure repository — the operational layer that gives AI agents the context, skills, memory, tools, and guardrails they need to work reliably in my day-to-day environment.
+> A personal agentic infrastructure repository — the operational layer that gives AI agents the context, skills, memoryP, tools, and guardrails they need to work reliably in my day-to-day environment.
 
 ---
 

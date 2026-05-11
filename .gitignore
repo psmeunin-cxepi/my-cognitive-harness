@@ -8,6 +8,7 @@
 .env
 .playwright
 .playwright-mcp/
+.golf
 
 # LangSmith CLI config (contains API keys)
 .langsmith/

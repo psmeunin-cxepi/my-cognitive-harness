@@ -91,6 +91,27 @@ Every EE ticket must carry the general label **and** its workstream label. PM-dr
 
 ---
 
+## JIRA Index
+
+### Epic: [CXP-29377](https://cisco-cxe.atlassian.net/browse/CXP-29377) — Q4 Engineering Excellence
+
+| Key | Type | Summary | Status | Labels |
+|-----|------|---------|--------|--------|
+| [CXP-29385](https://cisco-cxe.atlassian.net/browse/CXP-29385) | Story | Agent Memory Architecture | Pending Approval | `ee1-agent-arch` |
+| [CXP-29432](https://cisco-cxe.atlassian.net/browse/CXP-29432) | Task | Agent Code Refactoring — Structure, Decoupling & Platform Readiness | Pending Approval | `ee1-agent-arch` |
+| [CXP-29433](https://cisco-cxe.atlassian.net/browse/CXP-29433) | Epic | RAG Infrastructure — Ingestion Pipeline & Retrieval | Pending Approval | `ee2-rag` |
+
+### Epic: [CXP-29166](https://cisco-cxe.atlassian.net/browse/CXP-29166) — Standardize Agent Feature Behaviour Across All GA Domain Agents
+
+| Key | Type | Summary | Status | Labels |
+|-----|------|---------|--------|--------|
+| [CXP-30867](https://cisco-cxe.atlassian.net/browse/CXP-30867) | Story | Context Switch Handling — Audit, Standardise & Implement Across Agents | Pending Approval | `ee1-agent-arch`, `ee5-agent-spec` |
+| [CXP-30868](https://cisco-cxe.atlassian.net/browse/CXP-30868) | Story | Conversation History Handling — Standardise Across Agents | Pending Approval | `ee1-agent-arch` |
+| [CXP-30869](https://cisco-cxe.atlassian.net/browse/CXP-30869) | Story | Step Updates — Standardise Progress Messages Across Agents | Pending Approval | `ee1-agent-arch` |
+| [CXP-30870](https://cisco-cxe.atlassian.net/browse/CXP-30870) | Story | Error Handling & Resilience — Standardise Across Agents | Pending Approval | `ee1-agent-arch`, `ee5-agent-spec` |
+
+---
+
 ## References
 
 - [RFC-001: Context Switch Behavior Specification](../agent_behavioural_spec/rfc_context_switch.md)
