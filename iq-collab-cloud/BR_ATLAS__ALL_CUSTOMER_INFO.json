@@ -1,0 +1,41 @@
+[
+  {
+    "ACC_CUST_ID":"dfec1049-89d6-4770-a164-a2792a46681c",
+    "ORG_ID":"5556cea0-3af0-4825-a90e-e16483d06d09",
+    "ORG_NAME":"Wells Fargo - Prod",
+    "ORG_COUNTRY_CODE":"US",
+    "ORG_CREATED_DATE":"2020-03-20T00:00:00.000",
+    "IS_TEST_ORG":false,
+    "IS_TEST_CUST":false,
+    "IS_TEST_PARTNER":false,
+    "CI_REGION":"US-A",
+    "CUST_ACC_TYPE":"Customer",
+    "_LOAD_DATE":"2026-04-29T00:00:00.000"
+  },
+  {
+    "ACC_CUST_ID":"8eceeba1-3f80-461a-9353-60d4e81e44e5",
+    "ORG_ID":"5556cea0-3af0-4825-a90e-e16483d06d09",
+    "ORG_NAME":"Wells Fargo - Prod",
+    "ORG_COUNTRY_CODE":"US",
+    "ORG_CREATED_DATE":"2020-03-20T00:00:00.000",
+    "IS_TEST_ORG":false,
+    "IS_TEST_CUST":false,
+    "IS_TEST_PARTNER":false,
+    "CI_REGION":"US-A",
+    "CUST_ACC_TYPE":"Customer",
+    "_LOAD_DATE":"2026-04-29T00:00:00.000"
+  },
+  {
+    "ACC_CUST_ID":"09caf914-a9fa-43f3-bc12-fa9a71219e4f",
+    "ORG_ID":"5556cea0-3af0-4825-a90e-e16483d06d09",
+    "ORG_NAME":"Wells Fargo - Prod",
+    "ORG_COUNTRY_CODE":"US",
+    "ORG_CREATED_DATE":"2020-03-20T00:00:00.000",
+    "IS_TEST_ORG":false,
+    "IS_TEST_CUST":false,
+    "IS_TEST_PARTNER":false,
+    "CI_REGION":"US-A",
+    "CUST_ACC_TYPE":"Customer",
+    "_LOAD_DATE":"2026-04-29T00:00:00.000"
+  }
+]
