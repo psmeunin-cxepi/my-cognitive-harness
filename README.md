@@ -58,17 +58,6 @@ skill-name/
 └── assets/           # Optional: templates, schemas, diagrams
 ```
 
-### Skill Domains
-
-| Skill | Purpose |
-|---|---|
-| `cisco-iq-dev` | Agent development patterns, AI framework API usage, CXEPI conventions |
-| `jira-confluence` | Issue creation, sprint workflows, Confluence page authoring |
-| `code-review` | PR review checklists, security scanning, OWASP checks |
-| `langchain-ai` | LangChain chains, agents, memory, retrieval patterns |
-| `personal-productivity` | Meeting notes, action items, planning templates |
-| `mcp-management` | MCP server setup, PAT authentication, `.zshrc` patterns |
-
 ### Installing Skills via Tessl
 
 [Tessl](https://tessl.io) is the package manager for agent skills. Use it to discover, install, and evaluate skills from the public registry:
@@ -128,7 +117,7 @@ Each memory file declares its type in frontmatter:
 | `project` | Time-bound facts about ongoing work | "Merge freeze begins 2026-03-05" |
 | `reference` | Pointers to external systems | "Pipeline bugs tracked in Linear: INGEST" |
 
-### Practical Layout
+### Practical Layout (example)
 
 ```
 .agents/memory/
@@ -149,7 +138,12 @@ The behavioural contract (when to write, how to manage, when to read) lives in [
 
 ## MCP Servers
 
-MCP (Model Context Protocol) servers extend agent capabilities with live connections to external systems. The active server inventory is documented in [mcp/servers.md](mcp/servers.md).
+MCP (Model Context Protocol) servers extend agent capabilities with live connections to external systems. Server configuration is maintained in two files:
+
+- [`.mcp.json`](.mcp.json) — Claude Code (top-level key `mcpServers`)
+- [`.vscode/mcp.json`](.vscode/mcp.json) — GitHub Copilot (top-level key `servers`, supports `inputs` block)
+
+Both files must be kept in sync manually. There is no shared MCP config format across runtimes — the two tools use similar but incompatible schemas, and both write directly to their own file, making generation from a canonical source impractical.
 
 ### Current Server Inventory
 
