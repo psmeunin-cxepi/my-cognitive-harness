@@ -144,20 +144,7 @@ MCP (Model Context Protocol) servers extend agent capabilities with live connect
 - [`.vscode/mcp.json`](.vscode/mcp.json) — GitHub Copilot (top-level key `servers`, supports `inputs` block)
 
 Both files must be kept in sync manually. There is no shared MCP config format across runtimes — the two tools use similar but incompatible schemas, and both write directly to their own file, making generation from a canonical source impractical.
-
-### Current Server Inventory
-
-| Server | System | Use Cases |
-|---|---|---|
-| `github-cxepi` | GitHub (psmeunin-cxepi) | Cisco IQ engineering repos, CXEPI org |
-| `github-cisco` | GitHub (psmeunin_cisco) | cisco-cx-agentic org, ACP repos |
-| `cisco-cxe-atlassian` | Jira + Confluence | Cisco IQ projects, CX Engineering |
-| `confluence-eng-gpk2` | Confluence Engineering | Internal Cisco knowledge base |
-| `weaviate-docs` | Weaviate | Vector DB documentation |
-| `docs-langchain` | LangChain | Official LangChain docs |
-| `docs-openai` | OpenAI | Official OpenAI API docs |
-| `pypi-query` | PyPI | Package info, deps, compatibility |
-| `context7` | General library docs | Gemini, Mistral, and other frameworks |
+(this is managed by the agent)
 
 ### Authentication Notes
 
@@ -222,22 +209,10 @@ For **GitHub Copilot** and **Claude Code**, skills in `.agents/skills/` are auto
 
 ---
 
-## Roadmap
-
-- [ ] Author initial `cisco-iq-dev` skill with CXEPI AI framework patterns
-- [ ] Author `jira-confluence` skill with standard workflow templates
-- [ ] Author `code-review` skill with OWASP security checklist
-- [ ] Set up Tessl workspace and publish first skill to registry
-- [ ] Add GitHub Actions workflow to validate skills on PR
-- [ ] Symlink or configure user-level skill discovery at `~/.agents/skills/` to expose harness skills globally across all projects
-
----
-
 ## References
 
 - [Agent Skills Specification](https://agentskills.io/specification) — Official format spec
 - [Tessl Registry](https://tessl.io/registry) — Discover and evaluate community skills
 - [Tessl Docs](https://docs.tessl.io/) — CLI reference and evaluation guides
 - [Example Skills](https://github.com/anthropics/skills) — Anthropic's reference skill library
-- [Agent Harness Concepts](https://www.salesforce.com/agentforce/ai-agents/agent-harness/) — Infrastructure patterns for reliable agentic AI
 - [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) — Validation and prompt generation library
