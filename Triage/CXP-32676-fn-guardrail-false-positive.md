@@ -196,8 +196,6 @@ Step 2 — If it IS a Field Notice request, allow only:
     FN count, statistical aggregation of FN counts across assets.
     Block count queries about a specific FN ID (e.g., "How many assets are at
     risk for FN74267?").
-(2) Detail requests: asking for details about a specific FN by ID, or asking
-    what a Field Notice is. The Troubleshooting agent handles these.
 
 Block every other Field Notice request outside these two categories.
 
