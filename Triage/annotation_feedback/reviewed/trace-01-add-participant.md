@@ -67,10 +67,6 @@ The thumbs-down is consistent with both factors.
 
 ## AI Recommendations
 
-*Tracking:*
-- Recommendation 1 → [CXP-33092](https://cisco-cxe.atlassian.net/browse/CXP-33092)
-- Recommendation 3 → [CXP-33091](https://cisco-cxe.atlassian.net/browse/CXP-33091)
-
 1. **Reconsider the suggested-prompt catalog on `platform-home`.** Action-oriented prompts that require parameters (a case number, a device, a CVE) shouldn't appear unless the platform can either (a) inject those parameters from context or (b) hand the user a richer form rather than a chat prompt.
 2. **If keeping the suggestion**, gate it on prior context — only show "Add a participant to a case's contact list" when the user has recently viewed or created a case in the session.
 3. **Open a JIRA to investigate the malformed response.** The `execute_agent.answer` literally begins with ` that case.` with no preceding clause. The SR trace shows only the final concatenated string, so the cause (Cases agent response construction vs. streaming/assembly) requires investigation outside this trace.
@@ -80,7 +76,9 @@ The thumbs-down is consistent with both factors.
 - **Reviewer:** Philip Smeuninx
 - **Reviewed:** 2026-05-13
 - **Verdict:** Accepted as-is
-- **JIRA:** Created — [CXP-33092](https://cisco-cxe.atlassian.net/browse/CXP-33092) (recs 1 & 2, suggestion catalog), [CXP-33091](https://cisco-cxe.atlassian.net/browse/CXP-33091) (rec 3, malformed response)
+- **JIRA:**
+  - Recommendations 1 & 2 (UX, suggestion catalog) → [CXP-33092](https://cisco-cxe.atlassian.net/browse/CXP-33092) — merged into one ticket since they are the same UX concern.
+  - Recommendation 3 (malformed response) → [CXP-33091](https://cisco-cxe.atlassian.net/browse/CXP-33091)
 - **Reviewer Note:** Posted (AI Analysis + AI Recommendations only)
 - **Notes:** Recs 1 and 2 were merged into a single JIRA since they are the same UX concern.
 
