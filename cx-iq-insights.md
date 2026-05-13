@@ -155,9 +155,26 @@ Security/PSIRT management-report generation does not route:
 
 Insight: the system has some report-generation capability, but users will generalize it to other domains. If LDOS can produce a PPT, users will expect PSIRT, advisory, hardening, and remediation reports too.
 
-### 4.5 Routed Execution Failures
+### 4.5 User-Visible Failure Responses
 
-No-route dominates the gap picture, but routed execution failures also appear.
+The largest response-level failure pattern is the generic processing-error response:
+
+```text
+An error occurred while processing your request. Trace ID: ...
+```
+
+This appears 45 times in both the knowledge graph and the raw `iq-7-day-report/traces.json` file. All 45 of those traces are currently modeled as unrouted because `agent_name` and `agent_skill` are null. So they are not routed agent execution failures in the graph model, but they are absolutely user-visible failures and should be counted as such.
+
+Generic processing-error responses by routing status:
+
+| Route status | Traces |
+| ------------ | -----: |
+| Unrouted | 45 |
+| Routed | 0 |
+
+This changes the framing: the main failure mode is not routed agent execution. The main failure mode is that no-route outcomes are rendered to users as generic processing errors.
+
+Routed execution failures also appear, but they are a smaller subset. I classified these by scanning routed `Response.output` text for stronger failure phrases such as `temporary system issue`, `data type mismatch`, and `no data available`.
 
 Strong routed failure indicators among non-empty prompts:
 
@@ -176,7 +193,7 @@ Representative examples:
 | "what's here"                                                                                                                 | `Assets (General)` / `ask_cvi_ldos_ai_internal`                 | "No data available at the moment."                      |
 | "inevntory"                                                                                                                   | `Assets (General)` / `ask_cvi_ldos_ai_internal`                 | "No data available at the moment."                      |
 
-Insight: routed failures are fewer than routing failures, but they are concrete fixes. The Security Advisory date/type mismatch looks like a query-generation or schema-handling defect. The Cases issue looks like tool/service availability. The internal LDOS path may need better context or empty-state handling.
+Insight: the user-visible failure count is much larger than the routed execution-failure count. The 45 generic processing-error outputs are no-route failures in the graph, but they still represent failed user experiences. The routed failures are fewer, but they are concrete fixes. The Security Advisory date/type mismatch looks like a query-generation or schema-handling defect. The Cases issue looks like tool/service availability. The internal LDOS path may need better context or empty-state handling.
 
 ## 5. Routing Consistency Findings
 
@@ -318,7 +335,7 @@ This surface likely needs product-help routing and better cross-linking to asset
 
 3. Replace generic no-route errors with useful no-route responses.
 
-   A routing miss should not look like a system failure. The response should explain that the current assistant could not find the right capability, offer examples of supported asks, and preserve the Trace ID for support without making it the main user-facing content.
+   A routing miss should not look like a system failure. The response should explain that the current assistant could not find the right capability, offer examples of supported asks, and preserve the Trace ID for support without making it the main user-facing content. These responses should also be labeled structurally as no-route failures so they are easy to count without scanning response text.
 
 4. Improve follow-up context resolution before routing.
 
