@@ -34,22 +34,25 @@ The full process is owned by the [`cx-iq-annotation-feedback`](../../.agents/ski
                │
                │  per trace, human confirms each step:
                │
-               │   1. JIRA?    → skill drafts + creates via Jira MCP
-               │                   → JIRA key written into the doc
-               │   2. Note?    → skill POSTs /feedback key=note
-               │                   (note includes JIRA link if any)
-               │   3. Move     → reviewed/trace-NN-<slug>.md
+               │   1. JIRA?      → skill drafts + creates via Jira MCP
+               │   2. AI note?   → skill POSTs /feedback key=note
+               │                     (AI Analysis + Recommendations only)
+               │   3. Human Review → skill fills the section + posts it
+               │                     as a second /feedback key=note
+               │   4. Move        → reviewed/trace-NN-<slug>.md
+               │   5. Mark done   → POST /annotation-queues/status/{qr}
                ▼
-   reviewed/trace-NN-<slug>.md  +  Jira ticket  +  LangSmith reviewer note
+   reviewed/trace-NN-<slug>.md  +  Jira ticket(s)  +  2 LangSmith notes
+   (queue run flipped to "Completed" so it stops re-surfacing)
 ```
 
 Five phases, each gated by an explicit human checkpoint:
 
 1. **Pull** — fetch every run currently in the queue, plus its children and feedback rows, into `_raw/`.
-2. **Assess** — for each trace, write a per-trace doc with **AI Analysis** and **AI Recommendations** grounded only in that trace's payload.
+2. **Assess** — for each trace, write a per-trace doc with **AI Analysis** and **AI Recommendations** grounded only in that trace's payload. These two sections stay pure model output.
 3. **Review** — human reads the docs and pushes back on anything unsupported.
-4. **JIRA first** — for each trace flagged for further investigation, the human confirms; the skill drafts and (with consent) creates the ticket via the Jira MCP, then writes the JIRA key back into the per-trace doc. The human can also choose draft-only and create it manually.
-5. **Post + archive** — the AI assessment is posted to LangSmith as a Reviewer Note (`feedback` row with `key='note'`) on the root run, including the JIRA link if one exists, then the doc is moved into [`reviewed/`](./reviewed/).
+4. **JIRA first** — for each trace flagged for further investigation, the human confirms; the skill drafts and (with consent) creates the ticket via the Jira MCP. The JIRA key is recorded in the doc footer (`<!-- jira: CXP-XXXXX -->`) and in the `## Human Review` section — **never** added to `## AI Recommendations`.
+5. **Post + archive + close** — the AI assessment is posted to LangSmith as a Reviewer Note, then the `## Human Review` block is posted as a second Reviewer Note (carrying the JIRA refs), the doc is moved into [`reviewed/`](./reviewed/), and the queue run is marked completed via `POST /annotation-queues/status/{queue_run_id}` so the next batch pull doesn't re-surface it.
 
 ---
 
@@ -84,11 +87,19 @@ Each `trace-NN-<slug>.md` follows a fixed layout:
 2. UI context (app, url, language, filters)
 3. Routing decision
 4. User feedback (verbatim quote + score)
-5. **AI Analysis** — what the trace shows, evidence-grounded
-6. **AI Recommendations** — actionable items; for generic-error responses this is a single line: *"Open a JIRA for further investigation."*
-7. **Human Review** — audit trail of the human's verdict, the JIRAs created (or skipped), and the reviewer-note posting decision; populated by the skill in step 8 just before the doc is moved to `reviewed/`.
+5. **AI Analysis** — what the trace shows, evidence-grounded. Pure model output — no human edits, no JIRA refs.
+6. **AI Recommendations** — actionable items; for generic-error responses this is a single line: *"Open a JIRA for further investigation."* Pure model output — **never** carries `Tracking:` lines or JIRA links.
+7. **Human Review** — audit trail of the human's verdict, the JIRAs created (mapped to each AI recommendation), and the reviewer-note posting decision; populated by the skill in step 8 just before the doc is moved to `reviewed/`. **All JIRA references live here**, not in AI Recommendations.
 
-Once posted, the doc is moved to `reviewed/` and a footer comment records the LangSmith feedback id of the posted note (`<!-- ai-note-id: <uuid> -->`) so it can be retracted later via `DELETE /feedback/<id>`.
+Once posted, the doc is moved to `reviewed/` and footer comments record the LangSmith feedback ids of both posted notes plus the JIRA keys:
+
+```html
+<!-- jira: CXP-XXXXX, CXP-YYYYY -->
+<!-- ai-note-id: <uuid> -->
+<!-- human-review-note-id: <uuid> -->
+```
+
+Either note can be retracted later via `DELETE /feedback/<uuid>`.
 
 ---
 
@@ -96,8 +107,15 @@ Once posted, the doc is moved to `reviewed/` and a footer comment records the La
 
 Reviewer Notes are stored as `feedback` rows with `key='note'` on the **root run**. Multiple notes coexist (the UI appends; it does not overwrite), so AI-posted notes never displace human-authored ones.
 
-AI-posted notes are always prefixed with:
+The skill posts **two** notes per reviewed trace:
+
+1. **AI Triage note** — AI Analysis + AI Recommendations, posted before the human verdict.
+2. **Human Review note** — the `## Human Review` block (verdict, JIRAs created, reviewer name/date), posted after the human signs off. This is what gives reviewers in the queue UI a one-glance answer to "what was decided?".
+
+Both are prefixed with:
 
 > `**AI Triage** — auto-posted from cx-iq-annotation-feedback skill`
 
-so reviewers can distinguish them at a glance.
+so reviewers can distinguish them from human-authored notes at a glance.
+
+The AI note must be posted with `feedback_source: {"type": "app"}` — without it, notes are stored on the run but stay invisible in the annotation queue UI.
