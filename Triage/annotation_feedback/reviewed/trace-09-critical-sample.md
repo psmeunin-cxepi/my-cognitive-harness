@@ -64,3 +64,20 @@ There is also a deeper question: "tell me the names of all devices" is a list-ex
 2. Once the truncation point is known, declare `total / shown / next` for sampled responses. A header like "*Showing 11 of 1,383 affected devices, ranked by [criticality]*" is the minimum.
 3. Provide an explicit "view all" affordance that deep-links into Asset Explorer with the predicate pre-applied (e.g., `securityAdvisoryCount>=1&severity=Critical`).
 4. Consider whether "give me all" intents should be detected at the SR or agent layer and answered with the count + an export prompt rather than a token-capped sample. Phrasings like "all", "every", "list everything", or numbers explicitly larger than 50 are signals for this branch.
+
+## Human Review
+
+- **Reviewer:** Philip Smeuninx
+- **Reviewed:** 2026-05-14
+- **Verdict:** Accepted with edits — agreed the response should be enhanced. The agent should explicitly indicate there are too many devices to show in the thread and suggest an alternative (e.g. download as Excel file).
+- **JIRA:**
+  - Recommendations 1, 2, 3 → [CXP-33287](https://cisco-cxe.atlassian.net/browse/CXP-33287) — Bug against the Security Advisories agent (truncation behaviour + caption + view-all/export affordance).
+  - Recommendation 4 → [CXP-33288](https://cisco-cxe.atlassian.net/browse/CXP-33288) — Story to author a behavioural spec for list-export intents and large result sets (cross-agent contract under `engineering_excellence_q4/agent_behavioural_spec/`).
+- **Reviewer Note:** Posted (AI Analysis + AI Recommendations only)
+- **Notes:** Two tickets so the agent fix and the cross-agent spec can move independently; linked via "Relates".
+
+<!-- jira: CXP-33287 -->
+<!-- jira: CXP-33288 -->
+<!-- ai-note-id: 9b4d9404-4c11-42d5-aca8-8623968b6a8f -->
+<!-- human-review-note-id: 9b9736ad-aa91-42b3-bcb3-0b4b4fed46ba -->
+

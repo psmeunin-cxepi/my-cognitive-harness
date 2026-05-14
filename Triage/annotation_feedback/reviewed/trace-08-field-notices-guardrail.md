@@ -66,3 +66,17 @@ The guardrail did its job. What is missing is a friendly canned response. The re
 ## AI Recommendations
 
 1. **Open a JIRA for further investigation.** The user-visible response was *"An error occurred while processing your request."* Any error string surfaced to the user requires a tracked investigation — even when, as here, the underlying guardrail decision was correct, the rendering of that decision as an error is the bug to fix.
+
+## Human Review
+
+- **Reviewer:** Philip Smeuninx
+- **Reviewed:** 2026-05-14
+- **Verdict:** Accepted — same generic-error rendering of a correct guardrail veto as traces 03, 04, 06.
+- **JIRA:** Recommendation 1 → [CXP-32676](https://cisco-cxe.atlassian.net/browse/CXP-32676) (existing — generic error rendering of FN guardrail / selection failures). The reviewer's own feedback comment names the fix: surface the guardrail's "scope / capabilities" message instead of the generic error.
+- **Reviewer Note:** Posted (AI Analysis + AI Recommendations only)
+- **Notes:** Same root cause class as traces 03/04/06; folding into the existing ticket.
+
+<!-- jira: CXP-32676 -->
+<!-- ai-note-id: 40df9579-6512-41e2-b801-e2ed45b77e67 -->
+<!-- human-review-note-id: 8eb21fbe-d30c-4ef6-b1ae-fc9946dff109 -->
+

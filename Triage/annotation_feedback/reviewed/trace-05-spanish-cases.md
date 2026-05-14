@@ -61,5 +61,18 @@ The Cases agent answered entirely in Spanish.
    - Always reply in `payload.context.language` (UI locale wins over input language), or
    - Always mirror input language (and update guardrails accordingly).
    The current behaviour is non-deterministic.
-2. **Investigate the Cases agent (`cx_ai_list_cases`)** to confirm whether `payload.context.language` is read at all and how the response language is currently chosen. Implementing the policy will require changes in the agent code.
-3. Add an evaluation set covering non-English inputs to catch regressions on both directions (mirroring and blocking) once the policy is enforced.
+2. Add an evaluation set covering non-English inputs to catch regressions on both directions (mirroring and blocking) once the policy is enforced.
+
+## Human Review
+
+- **Reviewer:** Philip Smeuninx
+- **Reviewed:** 2026-05-14
+- **Verdict:** Accepted with edits (dropped the AI's "investigate the Cases agent" recommendation as out of scope for this feedback)
+- **JIRA:** Recommendations 1 & 2 (response-language policy + non-English eval set) → [CXP-33285](https://cisco-cxe.atlassian.net/browse/CXP-33285) — created as a single ticket since the eval set is the regression guard for the policy
+- **Reviewer Note:** Posted (AI Analysis + AI Recommendations only)
+- **Notes:** The original AI rec #2 ("Investigate the Cases agent") was removed from this triage — agent-code investigation belongs inside the JIRA, not here.
+
+<!-- jira: CXP-33285 -->
+<!-- ai-note-id: 24738b22-ce84-4d88-8d20-9bf538e83208 -->
+<!-- human-review-note-id: 458ee8e3-0fa9-4724-83de-1c8ad53e1d76 -->
+

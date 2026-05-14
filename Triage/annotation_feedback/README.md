@@ -17,6 +17,29 @@ The full process is owned by the [`cx-iq-annotation-feedback`](../../.agents/ski
 
 ---
 
+## Current batch — pulled 2026-05-14
+
+Source queue: **`negative-user-feedback`** · workspace **`cx-iq-prod`** · all rows project **`ciq-agents-prod-usw2`** unless noted.
+
+| # | Trace ID | Project | UI app | User question | SR routed to (skill) | `is_valid_input` | Failure layer | File |
+|---|---|---|---|---|---|---|---|---|
+| 07 | `019e1d4f-109c-73a2-9ad7-e8107e65a0b7` | `ciq-agents-prod-euc1` | `assessments` | how can i fix Cisco 4000 Series ISR affected by CVE-2017-12229? | `Enola_Get_CVE` | true | UI / downstream rendering (duplicate message) | [trace-07-cve-duplicate.md](trace-07-cve-duplicate.md) |
+| 10 | `019e2192-0127-7c40-8727-15f6db37eaab` | `ciq-agents-prod-usw2` | `asset-explorer` | Review asset inventory, ignore LDOS gear; report IOS release / hostnames / model / MGT IP | `ask_cvi_ldos_ai_external` | true | LDOS agent — column content (`Management Ip`, `Current Ios Code Release`) | [reviewed/trace-10-ldos-asset-inventory-missing-data.md](reviewed/trace-10-ldos-asset-inventory-missing-data.md) |
+| 11 | `019e21a7-b407-7d73-b1aa-680ccfc7f1bf` | `ciq-agents-prod-usw2` | `asset-explorer` | Wireless APs unique SKUs, JSON-only with strict schema | `ask_cvi_ldos_ai_external` | true | LDOS agent — instruction-following (returned prose, not JSON) | [reviewed/trace-11-ldos-json-instruction-ignored.md](reviewed/trace-11-ldos-json-instruction-ignored.md) |
+| 12 | `019e21de-f21b-7fc0-9720-4b027970988e` | `ciq-agents-prod-usw2` | `platform-home` | Review FN74383 — list of impacted APs and versions | `cx_ai_fn_q_a` | false (FN guardrail) | Generic error rendering of FN guardrail veto | [reviewed/trace-12-fn74383-guardrail-error.md](reviewed/trace-12-fn74383-guardrail-error.md) |
+| 13 | `019e2209-528e-7913-8a93-b3f5b58f1d7f` | `ciq-agents-prod-usw2` | `platform-home` | Workaround for fn72424 | `cx_ai_fn_q_a` | false (FN guardrail) | Generic error rendering of FN guardrail veto | [reviewed/trace-13-fn72424-workaround-guardrail-error.md](reviewed/trace-13-fn72424-workaround-guardrail-error.md) |
+| 14 | `019e2242-0343-7f50-8d91-e7947cc44697` | `ciq-agents-prod-usw2` | `asset-explorer` | Excel of assets going EOS in 2025–2026, include business unit | `ask_cvi_ldos_ai_external` | true | LDOS agent — `Business Entity` column blank, per-serial duplication | [reviewed/trace-14-ldos-eos-excel-business-unit-blank.md](reviewed/trace-14-ldos-eos-excel-business-unit-blank.md) |
+| 15 | `019e23f0-bc56-7f61-9287-69278df47fc8` | `ciq-agents-prod-usw2` | `asset-explorer` | Field Notice 72464 の影響範囲をまとめて (Japanese) | `cx_ai_fn_q_a` | false (FN guardrail) | Generic error rendering of FN guardrail veto + Japanese-prompt / English-error locale mismatch | [reviewed/trace-15-fn72464-japanese-guardrail-error.md](reviewed/trace-15-fn72464-japanese-guardrail-error.md) |
+
+Already reviewed (in [`reviewed/`](./reviewed/)): traces 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15.
+
+### Cross-cutting patterns in this pull
+
+- **Generic error rendering of deliberate guardrail vetoes** (traces 12, 13, 15) — same class as already-reviewed traces 03, 04, 06, 08. The FN-specific guardrail correctly identifies "give me workaround / impact list / impact summary for FN X" as outside its allowed categories (count-based or general-by-ID definitions only), but the user only sees `"An error occurred while processing your request."`. Trace 13's reviewer comment explicitly says CIQ "should be able to answer the Field Notice question" — confirming the user expectation gap on top of the rendering bug. Trace 15 adds an English-error-on-Japanese-prompt locale mismatch.
+- **LDOS agent content / instruction-following gaps** (traces 10, 11, 14) — routing and guardrails are clean and the agent returns a rendered table, but the trace shows column-content defects (10: wrong values in `Management Ip` / `Current Ios Code Release`), instruction non-compliance (11: JSON-only request answered in prose), and missing/blank columns the user explicitly asked for (14: `Business Entity` blank for every visible row). Each requires investigation in `cvi-ldos-ai`; no agent-code recommendations are made from the SR trace alone.
+
+---
+
 ## High-level process
 
 ```

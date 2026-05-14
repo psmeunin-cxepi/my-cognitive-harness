@@ -61,3 +61,17 @@ The SR collapses three different "no route" conditions (LLM `is_valid: false`, F
 ## AI Recommendations
 
 1. **Open a JIRA for further investigation.** The user-visible response was *"An error occurred while processing your request."* Any error string surfaced to the user requires a tracked investigation; this triage records the SR-layer observations but root-cause analysis and the fix belong in a ticket.
+
+## Human Review
+
+- **Reviewer:** Philip Smeuninx
+- **Reviewed:** 2026-05-14
+- **Verdict:** Accepted as-is
+- **JIRA:** Recommendation 1 (out-of-scope rendered as generic error) → [CXP-32676](https://cisco-cxe.atlassian.net/browse/CXP-32676) — already opened and resolved
+- **Reviewer Note:** Posted (AI Analysis + AI Recommendations only)
+- **Notes:** No new ticket needed; the existing CXP-32676 covers this exact failure mode (out-of-scope question collapsed into the generic error string).
+
+<!-- jira: CXP-32676 -->
+<!-- ai-note-id: cde50a48-0095-434f-8d87-62d537a6ef8e -->
+<!-- human-review-note-id: 6b87245a-7ea8-4131-acbd-90b4db7aff5d -->
+
