@@ -1,6 +1,6 @@
 > **Agent:** Asset General
 > **Repo:** [`CXEPI/cvi-ldos-ai`](https://github.com/CXEPI/cvi-ldos-ai)
-> **Jira:** _to be created_
+> **Jira:** [CXP-32181](https://cisco-cxe.atlassian.net/browse/CXP-32181) (data layer — FN consumption table), [CXP-33716](https://cisco-cxe.atlassian.net/browse/CXP-33716) (agent arch — multi-table schema linking)
 
 # LDOS Agent: Field Notice Per-Asset Data Availability
 
