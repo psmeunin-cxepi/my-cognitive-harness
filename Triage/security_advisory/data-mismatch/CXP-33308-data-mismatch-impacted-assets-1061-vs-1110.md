@@ -52,11 +52,44 @@ The agent's SQL is internally consistent with the schema (`vulnerability_status`
 
 > **The chassis filter is not the cause.** The user confirmed that removing `equipment_type = chassis` from the Inventory filter does not bring the Inventory count down to 1,061 — the gap persists. The discrepancy lives in how each surface defines "affected by a security advisory" (predicate / source view), not in equipment-type scoping.
 
+## Root cause — the two surfaces query different view versions
+
+The AI agent and the Asset Inventory UI read from **different versions of the same logical views**:
+
+| Surface | Assets view | PSIRTs view |
+|---|---|---|
+| **Security Advisory AI agent** | `postgresql.public.cvi_assets_view_1__3__5` | `postgresql.public.cvi_psirts_view_1__3__7` |
+| **Assets → Inventory UI** | `cvi_assets_view_1__3__9` | `cvi_psirts_view_1__3__11` |
+
+The agent's view names are configured in [`text2sql_mcp/config.py`](https://github.com/CXEPI/risk-app/blob/main/text2sql_mcp/config.py#L60-L66) on `CXEPI/risk-app` (Pydantic settings, defaults below; overridable via env vars `SQL_MCP_SECURITY_ADVISORY_ASSETS_TABLE` / `SQL_MCP_SECURITY_ADVISORY_TABLE`):
+
+```python
+security_advisory_table: str = Field(
+    "postgresql.public.cvi_psirts_view_1__3__7", ...
+)
+security_advisory_assets_table: str = Field(
+    "postgresql.public.cvi_assets_view_1__3__5", ...
+)
+```
+
+The deployed prod env is therefore pinned **4 minor versions behind** on `cvi_assets_view` (5 → 9) and **4 minor versions behind** on `cvi_psirts_view` (7 → 11). Even with identical SQL semantics on both sides, version drift of the underlying ETL output is sufficient to explain the 49-asset gap (different row counts, possibly different column definitions of `vulnerability_status`, possibly different join coverage).
+
+### How the prod values are injected
+
+The defaults in `config.py` are **local-dev only**. In prod the values come from env vars wired through Helm + External Secrets Operator — there is no `.env` file:
+
+1. **External secret store** (org secret manager) at `.Values.externalSecrets.secretsPath` holds the canonical values.
+2. [`text2sql_mcp/helm/templates/external-secret.yaml`](https://github.com/CXEPI/risk-app/blob/main/text2sql_mcp/helm/templates/external-secret.yaml) declares an `ExternalSecret` that syncs 5 keys (incl. `SQL_MCP_SECURITY_ADVISORY_TABLE`, `SQL_MCP_SECURITY_ADVISORY_ASSETS_TABLE`) into a K8s `Secret` named `<release>-api-secrets` (refresh interval ~1h).
+3. [`text2sql_mcp/helm/templates/deployment.yaml#L112-L114`](https://github.com/CXEPI/risk-app/blob/main/text2sql_mcp/helm/templates/deployment.yaml#L112-L114) mounts the whole secret into the container env via `envFrom: secretRef: <release>-api-secrets`.
+4. Pydantic Settings in `config.py` reads them at startup (defaults are overridden whenever the env var is present).
+
+To **change the prod pin**, update the value in the upstream secret store; ExternalSecret will sync within the refresh interval and the new value is picked up on next pod restart. **No code change to `config.py` is required.** To verify the live value: `kubectl exec <pod> -- env | grep SQL_MCP_SECURITY_ADVISORY`.
+
 ## Action items
 
-1. **Confirm the table** the `Assets → Inventory` page reads from when the "Affected by security advisories" filter is applied.
-2. **Confirm the SQL query** that page emits to produce the 1,110 count.
-3. **Diff** that query against the AI agent's SQL (below) and report where they differ — table, predicate, joins, filters.
+1. Align the agent's view versions to the Inventory UI's. Update `SQL_MCP_SECURITY_ADVISORY_ASSETS_TABLE` → `postgresql.public.cvi_assets_view_1__3__9` and `SQL_MCP_SECURITY_ADVISORY_TABLE` → `postgresql.public.cvi_psirts_view_1__3__11` in the **upstream secret store** that backs the prod `ExternalSecret` (not in `config.py`); restart the `text2sql_mcp` pod after the sync. Then rebase the hardcoded column schema (`text2sql_mcp/server.py` schema payloads) against the new views.
+2. Re-run the same prompt against the same tenant after the pin is updated and confirm the count converges to the Inventory UI value.
+3. If the counts still differ post-alignment, request the exact SQL the Inventory UI emits for the "Affected by security advisories" filter and diff predicates (likely `affected_security_advisories_count > 0` on the assets view vs. the agent's `INNER JOIN psirts WHERE vulnerability_status = 'VUL'`).
 
 ### AI agent SQL (for the diff)
 ```sql
@@ -66,6 +99,12 @@ INNER JOIN postgresql.public.cvi_psirts_view_1__3__7 AS psirts
   ON assets.serial_number = psirts.serial_number
 WHERE psirts.vulnerability_status = 'VUL';
 ```
+
+## Recommendations
+
+- **P1 — Pin alignment as deploy invariant.** The `text2sql_mcp` view pins must be tracked against the same source of truth that the Inventory UI uses. Add a release-time check that fails CI/CD if the configured view versions drift behind the latest published `cvi_*_view`.
+- **P2 — Same-question regression eval.** Add an eval case "How many assets are impacted by a security advisory?" anchored to the Inventory UI's count for a known tenant. Run on every release to catch silent drift.
+- **P3 — Surface the view version in agent answers.** The agent should disclose which view + version it queried (in the trace and optionally in the user-facing answer footer) so this class of mismatch is debuggable in one step.
 
 ## Related (separate tickets)
 
