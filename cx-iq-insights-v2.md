@@ -2,7 +2,7 @@
 
 > Date: 2026-05-13
 >
-> Data source: CX IQ Semantic Router Neo4j knowledge graph populated from `iq-7-day-report/traces.json`
+> Data source: CX IQ Semantic Router Neo4j knowledge graph populated from `iq-assistant-feedback-reports/traces.json`
 >
 > Objective: Understand where IQ agents currently fall short on answering user prompts, using the extended graph schema with `routing_decision` and `SELECTED` relationships.
 
