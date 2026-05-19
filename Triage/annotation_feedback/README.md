@@ -33,6 +33,51 @@ Source queue: **`negative-user-feedback`** · workspace **`cx-iq-prod`** · all 
 
 Already reviewed (in [`reviewed/`](./reviewed/)): traces 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15.
 
+---
+
+## Current batch — pulled 2026-05-20
+
+Source queue: **`negative-user-feedback`** · workspace **`cx-iq-prod`** · project **`ciq-agents-prod-usw2`** unless noted.
+
+| # | Trace ID | Project | UI app | User question (excerpt) | SR routed to (skill) | Failure layer | File |
+|---|---|---|---|---|---|---|---|
+| 16 | `019e25ca-3d4e-7da2-b410-7a29a90c1d94` | `ciq-agents-prod-euc1` | `admin` | Export per-device SA executive report | `ask_security_assessment` | SA agent export error | [trace-16-sa-export-error.md](trace-16-sa-export-error.md) |
+| 17 | `019e25f8-62bc-7cf1-b0fb-f2c868e66a53` | `ciq-agents-prod-usw2` | `platform-home` | (cases list request) | `cx_ai_case_list` | Unknown — no comment | [trace-17-cases-list.md](trace-17-cases-list.md) |
+| 18 | `019e2613-5064-7e50-8ba0-f5660a172543` | `ciq-agents-prod-usw2` | `assessments` | how many assets are impacted by FN74186 | `ask_cvi_ldos_ai_external` | FN guardrail block → error string | [trace-18-fn74186-guardrail-block.md](trace-18-fn74186-guardrail-block.md) |
+| 19 | `019e2824-005e-7db0-b131-00fa40d0d1c1` | `ciq-agents-prod-usw2` | `asset-explorer` | mostre a config do device (Portuguese) | *(rejected)* | Agent selection `is_valid=False` → error string | [trace-19-portuguese-config-request.md](trace-19-portuguese-config-request.md) |
+| 20 | `019e31dd-fc39-78d1-85a7-56c9f759844c` | `ciq-agents-prod-usw2` | `assessments` | list of security hardening rules checked | `ask_security_hardening` | SH agent — response flagged inaccurate | [trace-20-sh-rules-list.md](trace-20-sh-rules-list.md) |
+| 21 | `019e3be9-7d77-7b23-86dc-abede075870f` | `ciq-agents-prod-usw2` | `admin` | Dame un resumen de LDOS (Spanish) | `ask_cvi_ldos_ai_external` | LDOS agent — English response to Spanish question | [trace-21-spanish-ldos-english-response.md](trace-21-spanish-ldos-english-response.md) |
+| 22 | `019e3bf2-c94a-7d93-8c41-28133a62df2f` | `ciq-agents-prod-usw2` | `admin` | LDOS próximos 12 meses (Spanish) | `ask_cvi_ldos_ai_external` | LDOS agent — English response to Spanish question | [trace-22-spanish-ldos-english-response-2.md](trace-22-spanish-ldos-english-response-2.md) |
+| 23 | `019e3bfa-cca0-79c0-876e-1cd8ef79a96f` | `ciq-agents-prod-usw2` | `admin` | hazme una presentación (Spanish PPT) | *(rejected)* | Agent selection `is_valid=False` + guardrail LLM errors | [trace-23-ppt-request-guardrail-error.md](trace-23-ppt-request-guardrail-error.md) |
+| 24 | `019e3bea-6e05-7c53-9738-344aa5d48254` | `ciq-agents-prod-usw2` | `platform-home` | como puedo identificar si mis AP estan afectados (Spanish) | `cx_ai_fn_q_a` | Unknown — no comment | [trace-24-troubleshooting-ap-affected.md](trace-24-troubleshooting-ap-affected.md) |
+| 25 | `019e3c02-6ef6-7fb3-9f30-765a7b42b3df` | `ciq-agents-prod-usw2` | `admin` | genera una presentación LDOS (Spanish PPT) | `ask_cvi_ldos_ai_external` | LDOS agent — English + no PPT export | [trace-25-ldos-ppt-english-no-export.md](trace-25-ldos-ppt-english-no-export.md) |
+| 26 | `019e3bf4-f48c-7732-8f26-0a9d93618c43` | `ciq-agents-prod-usw2` | `platform-home` | RMA creation (Spanish) | `cx_ai_case_create` | Cases agent — inconsistent Spanish terminology | [trace-26-cases-rma-spanish-terminology.md](trace-26-cases-rma-spanish-terminology.md) |
+| 27 | `019e3c12-b2b4-7ae2-b373-171efdc0baa9` | `ciq-agents-prod-usw2` | `admin` | Case creation info (Spanish) | `cx_ai_case_create` | Cases agent — duplicate response | [trace-27-cases-duplicate-response.md](trace-27-cases-duplicate-response.md) |
+| 28 | `019e3c22-23d9-71b3-bb81-7abd2b2f427e` | `ciq-agents-prod-usw2` | `admin` | weather in Mexico City (Spanish) | *(rejected)* | Agent selection `is_valid=False` + guardrail LLM errors | [trace-28-weather-out-of-scope-error.md](trace-28-weather-out-of-scope-error.md) |
+| 29 | `019e3c28-070f-7840-b0c2-8f810e45671a` | `ciq-agents-prod-usw2` | `admin` | severity escalation (Spanish) | `buff_mcp` | Cases agent — English→Spanish replacement visible + terminology | [trace-29-cases-severity-english-then-spanish.md](trace-29-cases-severity-english-then-spanish.md) |
+| 30 | `019e3c3f-b4c9-7051-bd25-a4773ecd0261` | `ciq-agents-prod-usw2` | `admin` | PPT vulnerabilities summary (Spanish) | *(rejected)* | Agent selection `is_valid=False` + guardrail LLM errors | [trace-30-ppt-vulnerabilities-error.md](trace-30-ppt-vulnerabilities-error.md) |
+| 31 | `019e3dea-3ec6-7d92-bda4-5e9b5b094e48` | `ciq-agents-prod-usw2` | `asset-explorer` | How many devices are vulnerable to security advisories? | `ask_security_assessment` | SA agent — retrieval failure | [trace-31-sa-device-count-retrieval-failure.md](trace-31-sa-device-count-retrieval-failure.md) |
+
+### Cross-cutting patterns in this batch
+
+1. **Spanish-language testing session (T021–T030)** — 10 of 16 traces appear to be from a single user testing CX IQ in Spanish on 2026-05-18, all from the `admin` app on the `data-connector` page. The `context.language` field is `en-US` for all (browser locale, not input language).
+
+2. **LDOS agent does not respond in the user's input language** (T021, T022, T025) — the Assets (General) agent consistently responds in English when the user writes in Spanish. The data returned is correct, but prose and table headers remain English. Whether the agent uses `context.language` or should infer from the question text needs investigation.
+
+3. **PPT/presentation generation is unsupported — inconsistent handling** (T023, T025, T030) — presentation export is not a supported capability. T023 and T030: `agent_selection` correctly returns `is_valid=False`. T025: `agent_selection` returns `is_valid=True` and routes to LDOS (question combines valid data request with unsupported export). All result in user confusion.
+
+4. **Guardrail LLM `RetryError/SdkException`** (T023, T028, T030) — both `semantic_router_nemo_guardrail_input` and `field_notice_nemo_guardrail_input` errored with `RetryError/SdkException` in multiple traces during the same session window. Likely a transient infrastructure issue with the NeMo guardrails service.
+
+5. **Cases agent handles Spanish better but has quality issues** (T026, T027, T29) — the Cases agent responds in Spanish (unlike LDOS), but: inconsistent terminology (T026), duplicate responses (T027), and visible English→Spanish replacement during streaming (T029).
+
+6. **Generic error strings for out-of-scope rejections** (T019, T023, T028, T030) — when `agent_selection` returns `is_valid=False`, the user sees "An error occurred while processing your request" instead of an informative out-of-scope message. Same pattern as batch 1 traces 03, 04, 06, 08, 12, 13, 15.
+
+7. **FN guardrail false positive** (T018) — FN guardrail blocked "how many assets are impacted by FN74186" on the FN detail page. Same class as batch 1 traces 12, 13, 15.
+
+---
+
+## Previous batch — pulled 2026-05-14
+
 ### Cross-cutting patterns in this pull
 
 - **Generic error rendering of deliberate guardrail vetoes** (traces 12, 13, 15) — same class as already-reviewed traces 03, 04, 06, 08. The FN-specific guardrail correctly identifies "give me workaround / impact list / impact summary for FN X" as outside its allowed categories (count-based or general-by-ID definitions only), but the user only sees `"An error occurred while processing your request."`. Trace 13's reviewer comment explicitly says CIQ "should be able to answer the Field Notice question" — confirming the user expectation gap on top of the rendering bug. Trace 15 adds an English-error-on-Japanese-prompt locale mismatch.
