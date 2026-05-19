@@ -163,7 +163,7 @@ The largest response-level failure pattern is the generic processing-error respo
 An error occurred while processing your request. Trace ID: ...
 ```
 
-This appears 45 times in both the knowledge graph and the raw `iq-assistant-feedback-reports/traces.json` file. All 45 of those traces are currently modeled as unrouted because `agent_name` and `agent_skill` are null. So they are not routed agent execution failures in the graph model, but they are absolutely user-visible failures and should be counted as such.
+This appears 45 times in both the knowledge graph and the raw `iq-assistant-reports/traces.json` file. All 45 of those traces are currently modeled as unrouted because `agent_name` and `agent_skill` are null. So they are not routed agent execution failures in the graph model, but they are absolutely user-visible failures and should be counted as such.
 
 Generic processing-error responses by routing status:
 
